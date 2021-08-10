@@ -10,7 +10,7 @@ class DNA():
     @property
     def complemented(self):
         """
-        以5'-3'方向返回序列的互补链
+        Get the complemented sequence from 5' to 3'
         """
         bp = {'A':'T', 'T':'A', 'G':'C', 'C':'G'}
         return ''.join([bp[b] for b in self.sequence[::-1]])
@@ -18,7 +18,7 @@ class DNA():
     @property
     def reversed(self):
         """
-        返回序列的3'-5'方向
+        Reverse sequence
         """
         return reversed(self.sequence)
 
