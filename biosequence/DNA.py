@@ -4,8 +4,6 @@ class DNA():
     def __init__(self, sequence):
         self.sequence = sequence.upper() or ''
         self.length = len(sequence)
-        self.orf = []
-        self.peptide = []
 
     @property
     def complemented(self):
@@ -31,7 +29,8 @@ class DNA():
             orf: the orf of the sequence
         """
         orf_len = int(self.length/3) * 3
-        if not self.orf:
+        if not hasattr(self, "orf") :
+            self.orf = []
             for orf in range(3):
 
                 for i in range(orf, orf_len, 3):
@@ -60,12 +59,14 @@ class DNA():
         Returns:
             peptide: the translate product
         """
-        if not self.orf:
+        if not hasattr(self, "orf") :
             self.get_orf()
+        if not hasattr(self, "peptide") :
+            self.peptide = []
 
-        if not self.peptide:
-            if isinstance(self.orf, str):
+            if isinstance(self.orf, str) or self.orf == []:
                 self.peptide = f'Sequence "{self.sequence:.8}..." can not translate because of no ORF '
+
             else:
                 for orf in self.orf:
                     peptide = ''
