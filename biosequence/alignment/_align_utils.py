@@ -1,4 +1,9 @@
-from config import AlignmentConfig
+import platform     # detect system for using .dll or .so to boost alignment
+import os
+
+from functools import wraps
+from ctypes import *
+from biosequence.config import AlignmentConfig
 
 MATCH = AlignmentConfig.MATCH
 MISMATCH = AlignmentConfig.MISMATCH
@@ -107,67 +112,6 @@ def backTracking(current_position, current_node, sequence1, sequence2):
     return sequence1, sequence2
 
 
-def SmithWaterman(query, subject):
-    # initial score matrix
-    matrix = initMatrix(len(query), len(subject), 0)
-    maxNode = MatrixNode(0)
-
-    # calculate score matrix
-    for i in range(1, len(query) + 1):
-        for j in range(1, len(subject) + 1):
-
-            up_score, left_score, upLeft_score = getScore(
-                i, j, matrix, query[i - 1], subject[j - 1]
-            )
-
-            matrix[i][j].score = max(up_score, left_score, upLeft_score, 0)
-            matrix[i][j].recordSource(up_score, left_score, upLeft_score)
-
-            if matrix[i][j].score >= maxNode.score:
-                maxNode = matrix[i][j]
-                position = [i, j]
-
-    # Back Tracking
-    while (node := matrix[position[0]][position[1]]).score:
-        query, subject = backTracking(position, node, query, subject)
-
-    # Align the sequences
-    if position[0] > position[1]:
-        subject = (position[0] - position[1]) * "." + subject
-    if position[1] > position[0]:
-        query = (position[1] - position[0]) * "." + query
-    if len(query) < len(subject):
-        query += "." * (len(subject) - len(query))
-    if len(subject) < len(query):
-        subject += "." * (len(query) - len(subject))
-
-    return query, subject, maxNode.score, matrix
-
-
-def NeedlemanWunsch(query, subject):
-    # initial score matrix
-    matrix = initMatrix(len(query), len(subject), 0)
-
-    # calculate score matrix
-    for i in range(1, len(query) + 1):
-        for j in range(1, len(subject) + 1):
-
-            up_score, left_score, upLeft_score = getScore(
-                i, j, matrix, query[i - 1], subject[j - 1]
-            )
-
-            matrix[i][j].score = max(up_score, left_score, upLeft_score)
-            matrix[i][j].recordSource(up_score, left_score, upLeft_score)
-
-    # Back Tracking
-    position = [i, j]
-    while position[0] or position[1]:
-        node = matrix[position[0]][position[1]]
-        query, subject = backTracking(position, node, query, subject)
-
-    return query, subject, matrix[-1][-1].score, matrix
-
-
 def test(func, sequence1="", sequence2="", show_matrix=False):
     from random import choice, randint
 
@@ -192,7 +136,7 @@ def test(func, sequence1="", sequence2="", show_matrix=False):
     print(f"Sequence 1:{sequence1}")
     print(f"Sequence 2:{sequence2}")
 
-    aligned_seq1, aligned_seq2, max_score, matrix = func(sequence1, sequence2)
+    aligned_seq1, aligned_seq2, max_score = func(sequence1, sequence2)
     print(f"Max score: {max_score}")
     print(f"Aligned sequence1: {aligned_seq1}")
     print(f"Aligned sequence2: {aligned_seq2}")
@@ -202,12 +146,42 @@ def test(func, sequence1="", sequence2="", show_matrix=False):
     print()
 
 
-if __name__ == "__main__":
-    seq1 = "TGTTACGG"  # TGTT_ACGG
-    seq2 = "GGTTGACTA"  # GGTTGACTZ
-    test(SmithWaterman, seq1, seq2)
+def cAlgorithm(func):
+    @wraps(func)
+    def comprise(query, subject):
+        if not isinstance(query, bytes):
+            query = bytes(query, encoding="utf-8")
 
-    seq1 = "GGATCGA"  # GGA-TC-G--A
-    seq2 = "GAATTCAGTTA"  # GAATTCAGTTA
-    test(NeedlemanWunsch, seq1, seq2)
+        if not isinstance(subject, bytes):
+            subject = bytes(subject, encoding="utf-8")
 
+        query = create_string_buffer(query)
+        subject = create_string_buffer(subject)
+        aligned_query = create_string_buffer(b"", len(query) + len(subject))
+        aligned_subject = create_string_buffer(b"", len(query) + len(subject))
+        score = c_int()
+        match = c_int(MATCH)
+        mismatch = c_int(MISMATCH)
+        gap_open = c_int(GAP_OPEN)
+        gap_extend = c_int(GAP_EXTEND)
+
+        if platform.system() == "Windows":
+            SUFFIX = ".dll"
+        elif platform.system() == "Linux":
+            SUFFIX = ".so"
+        else:
+            SUFFIX = ".dll"
+            print("Can't detect system, using .dll to boost Alignment")
+
+        DLL_PATH = os.path.join(os.path.dirname(__file__), "algorithm" + SUFFIX)
+
+        cAlign =func(DLL_PATH)
+        cAlign(query, subject, aligned_query, aligned_subject, pointer(score), match, mismatch, gap_open, gap_extend)
+
+        query = str(aligned_query.value, encoding="utf-8")
+        subject = str(aligned_subject.value, encoding="utf-8")
+        score = score.value
+
+        return query, subject, score
+
+    return comprise

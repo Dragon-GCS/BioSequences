@@ -1,6 +1,6 @@
-/biosequence/__pycache__/
+**/__pycache__/
 /.vscode/
 /.seqVenv/
 
+**.dll
 test.py
-
