@@ -1,10 +1,9 @@
 # Base class Sequence for DNA,RNA,peptide...
 from typing import Union, Any
 
-class Sequence():
+class _Sequence():
     def __init__(self, seq:str ="")-> None: 
         self._seq = seq
-        self._length = len(seq)
     
     @property
     def seq(self):
@@ -13,6 +12,10 @@ class Sequence():
         """
         return self._seq
     
+    @property
+    def length(self):
+        return len(self._seq)
+
     def mutation():
         pass
     

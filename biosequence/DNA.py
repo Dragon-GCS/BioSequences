@@ -1,4 +1,4 @@
-from config import TABLE, START_CODON
+from biosequence import config
 
 class DNA():
     def __init__(self, sequence):
@@ -35,15 +35,15 @@ class DNA():
 
                 for i in range(orf, orf_len, 3):
 
-                    if self.sequence[i:i+3] == START_CODON:
-                        seq = START_CODON
+                    if self.sequence[i:i+3] == config.START_CODON:
+                        seq = config.START_CODON
 
                         for j in range(i+3, orf_len, 3):
                             codon = self.sequence[j:j+3]
                             if len(codon) != 3:
                                 break
                             seq += codon
-                            if TABLE[codon] == "Stop":
+                            if config.TABLE[codon] == "Stop":
                                 self.orf.append(seq)
                                 break
                             
@@ -71,11 +71,11 @@ class DNA():
                 for orf in self.orf:
                     peptide = ''
                     for i in range(0, len(orf), 3):
-                            aa = TABLE[orf[i:i+3]]
+                            aa = config.TABLE[orf[i:i+3]]
                             if aa == "Stop":
                                 self.peptide.append(peptide)
                                 break
-                            peptide += TABLE[orf[i:i+3]]
+                            peptide += config.TABLE[orf[i:i+3]]
 
                 if filter:
                     self.peptide = sorted(self.peptide, key=len, reverse=True)[0]
@@ -84,8 +84,7 @@ class DNA():
     
 
 if __name__ == "__main__":
-    from config import test_dna
-    d = DNA(test_dna)
+    d = DNA(config.test_dna)
     d.get_orf()
     d.translate()
     print(d.orf)

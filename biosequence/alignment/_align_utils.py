@@ -5,11 +5,6 @@ from functools import wraps
 from ctypes import *
 from biosequence.config import AlignmentConfig
 
-MATCH = AlignmentConfig.MATCH
-MISMATCH = AlignmentConfig.MISMATCH
-GAP_OPEN = AlignmentConfig.GAP_OPEN
-GAP_EXTEND = AlignmentConfig.GAP_EXTEND
-
 
 class MatrixNode:
     def __init__(self, score):
@@ -65,13 +60,13 @@ def getScore(current_i, current_j, matrix, current_base1, current_base2):
     """
 
     up_score = matrix[current_i - 1][current_j].score + (
-        GAP_EXTEND if matrix[current_i - 1][current_j].up else GAP_OPEN
+        AlignmentConfig.GAP_EXTEND if matrix[current_i - 1][current_j].up else AlignmentConfig.GAP_OPEN
     )
     left_score = matrix[current_i][current_j - 1].score + (
-        GAP_EXTEND if matrix[current_i][current_j - 1].left else GAP_OPEN
+        AlignmentConfig.GAP_EXTEND if matrix[current_i][current_j - 1].left else AlignmentConfig.GAP_OPEN
     )
     upLeft_score = matrix[current_i - 1][current_j - 1].score + (
-        MATCH if current_base1 == current_base2 else MISMATCH)
+        AlignmentConfig.MATCH if current_base1 == current_base2 else AlignmentConfig.MISMATCH)
 
     return up_score, left_score, upLeft_score
 
@@ -160,22 +155,22 @@ def cAlgorithm(func):
         aligned_query = create_string_buffer(b"", len(query) + len(subject))
         aligned_subject = create_string_buffer(b"", len(query) + len(subject))
         score = c_int()
-        match = c_int(MATCH)
-        mismatch = c_int(MISMATCH)
-        gap_open = c_int(GAP_OPEN)
-        gap_extend = c_int(GAP_EXTEND)
+        match = c_int(AlignmentConfig.MATCH)
+        mismatch = c_int(AlignmentConfig.MISMATCH)
+        gap_open = c_int(AlignmentConfig.GAP_OPEN)
+        gap_extend = c_int(AlignmentConfig.GAP_EXTEND)
 
         if platform.system() == "Windows":
-            SUFFIX = ".dll"
+            suffix = ".dll"
         elif platform.system() == "Linux":
-            SUFFIX = ".so"
+            suffix = ".so"
         else:
-            SUFFIX = ".dll"
+            suffix = ".dll"
             print("Can't detect system, using .dll to boost Alignment")
 
-        DLL_PATH = os.path.join(os.path.dirname(__file__), "algorithm" + SUFFIX)
+        dll_path = os.path.join(os.path.dirname(__file__), "algorithm" + suffix)
 
-        cAlign =func(DLL_PATH)
+        cAlign =func(dll_path)
         cAlign(query, subject, aligned_query, aligned_subject, pointer(score), match, mismatch, gap_open, gap_extend)
 
         query = str(aligned_query.value, encoding="utf-8")
