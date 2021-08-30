@@ -148,7 +148,7 @@ def test(func, sequence1="", sequence2="", show_matrix=False):
 
 def cAlgorithm(func):
     @wraps(func)
-    def comprise(query, subject):
+    def comprise(query, subject, return_score=False):
         if not isinstance(query, bytes):
             query = bytes(query, encoding="utf-8")
 
@@ -180,8 +180,11 @@ def cAlgorithm(func):
 
         query = str(aligned_query.value, encoding="utf-8")
         subject = str(aligned_subject.value, encoding="utf-8")
-        score = score.value
 
-        return query, subject, score
+        if return_score:
+            score = score.value
+            return query, subject, score
+            
+        return query, subject
 
     return comprise

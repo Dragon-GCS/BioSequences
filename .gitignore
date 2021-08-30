@@ -2,5 +2,6 @@
 /.vscode/
 /.seqVenv/
 
-**.dll
+# **.dll
+**.so
 test.py

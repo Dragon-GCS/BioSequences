@@ -1,22 +1,23 @@
 from biosequence.alignment.algorithm import *
 
-def alignment(query, subject, mode=1, boost=True):
+def alignment(query, subject, mode=1, boost=True, return_score=False):
     
     if mode == 1:
         if boost:
-            return NeedlemanWunsch_c(query, subject)
+            return NeedlemanWunsch_c(query, subject, return_score)
         else:
-            return NeedlemanWunsch(query, subject)
+            return NeedlemanWunsch(query, subject, return_score)
     elif mode == 2:
         if boost:
-            return SmithWaterman_c(query, subject)
+            return SmithWaterman_c(query, subject, return_score)
         else:
-            return SmithWaterman(query, subject)
+            return SmithWaterman(query, subject, return_score)
             
     else:
         print("Please choose alignment mode:")
         print("1-Global alignment by Needleman-Wunsch")
         print("2-Local alignment by Smith-Waterman")
+
 
 if __name__ == "__main__":
     

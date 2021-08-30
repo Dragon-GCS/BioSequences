@@ -1,7 +1,7 @@
 from biosequence.alignment._align_utils import *
 
 
-def SmithWaterman(query, subject):
+def SmithWaterman(query, subject, return_score=False):
     # initial score matrix
     matrix = initMatrix(len(query), len(subject), 0)
     maxNode = MatrixNode(0)
@@ -34,11 +34,14 @@ def SmithWaterman(query, subject):
         query += "." * (len(subject) - len(query))
     if len(subject) < len(query):
         subject += "." * (len(query) - len(subject))
+    if return_score:
+        return query, subject, maxNode.score
+            
+    return query, subject
+    
 
-    return query, subject, maxNode.score
 
-
-def NeedlemanWunsch(query, subject):
+def NeedlemanWunsch(query, subject, return_score=False):
     # initial score matrix
     matrix = initMatrix(len(query), len(subject), 0)
 
@@ -58,8 +61,11 @@ def NeedlemanWunsch(query, subject):
     while position[0] or position[1]:
         node = matrix[position[0]][position[1]]
         query, subject = backTracking(position, node, query, subject)
-
-    return query, subject, matrix[-1][-1].score
+    if return_score:
+        return query, subject, matrix[-1][-1].score
+            
+    return query, subject
+    
 
 @cAlgorithm
 def NeedlemanWunsch_c(cFile_path):
@@ -70,10 +76,3 @@ def NeedlemanWunsch_c(cFile_path):
 def SmithWaterman_c(cFile_path):
     algorithm = cdll.LoadLibrary(cFile_path)
     return algorithm.SmithWaterman
-
-
-    
-
-
-
-
