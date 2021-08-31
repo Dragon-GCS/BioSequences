@@ -1,37 +1,118 @@
 # Base class Sequence for DNA,RNA,peptide...
-from typing import Union, Any
+import re
 
-class _Sequence():
-    def __init__(self, seq:str ="")-> None: 
-        self._seq = seq
-    
+from collections import Counter
+from typing import Tuple, Union, List
+from abc import ABC, abstractmethod
+from biosequence.align import alignment
+from biosequence import config
+
+class Sequence(ABC):
+    def __init__(self, seq: str = "") -> None:
+        self._seq = seq.upper()
+
     @property
-    def seq(self):
+    def seq(self) -> str:
         """
         Seq can only be modified by mutation
         """
         return self._seq
-    
+
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self._seq)
 
-    def mutation():
-        pass
-    
+    @property
+    def weight(self) -> float:
+        """
+        Calculate the molecular Weight
+        Returns:
+            weight: Sequence's Mole Weight in Daltons
+        """
+        if not hasattr(self, "_weight"):
+            weight_table = config.MW[self.__class__.__name__ + "_MW"]
+            self._weight = sum([weight_table[e] for e in self._seq], 18)
+        return self._weight
+
+    def align(self, subject: Union[str, "Sequence"], mode: int = 1, boost: bool = True, return_score: bool = False) -> Tuple[str, str, None] :
+        """
+        Align two sequence
+        Args:
+            subject: Sequence to align
+            mode: 1 - Use Needleman-Wunsch to global alignment
+                  2 - Use Smith-Waterman to partial alignment
+            boost: whether use c to boost calculating
+            return_score: whether return align score
+        Returns:
+            query: Self sequence after alignmnt
+            subject: Subject sequence afer alignment
+            score: align score if choose return_score
+        """
+        if isinstance(subject, self.__class__):
+            subject = subject._seq
+        elif not isinstance(subject, str):
+            raise TypeError(f"Only str or {self.__class__.__name__} can be aligned to {self.__class__.__name__}")
+
+        return alignment(self._seq, subject, mode, boost, return_score)
+
+    def analysis(self) -> dict:
+        """
+        Analysis the composition of sequence
+        Returns:
+            composition: Dict of each element's appearance's times
+        """
+        if not hasattr(self, "_composition"):
+            for key in sorted(counter:=dict(Counter(self._seq))):
+                self._composition[key] = counter[key]
+        return self._composition
+
+    def find(self, target:str) -> List[int]:
+        """
+        Find the target sequence in sequence and return the position
+        Returns:
+            : All position of target appearence in self.seuquence
+        """
+        return [i.start() for i in re.finditer(target, self._seq)]
+
+    def mutation(self, position: Union[int, List[int], str], target: str) -> str:
+        """
+        Modify the seqence
+        Args:
+            position: allow a position or a list of positions or the string to be modified
+        Returns:
+            seq: Sequence after modified
+        """
+        if isinstance(position, str):
+            self._seq = self._seq.replace(position, target)
+            return self._seq
+
+        elif isinstance(position, int):
+            position = [position]
+
+        elif not isinstance(position, (list, tuple)):
+            raise TypeError("Position should be str, int or list of int")
+
+        seq_list = list(self._seq)
+        for pos in position:
+            seq_list[pos: pos+len(target)] = target
+        self._seq = "".join(seq_list)
+
+        return self._seq
+
+    @abstractmethod
     def _print(self) -> str:
         """
         Output sequence info
         """
-        return f"Seq({self._seq})"
+        ...
 
     def __str__(self) -> str:
         return self._print()
-    
+
     def __repr__(self) -> str:
         return self._print()
-    
-    def __add__(self, s:Union[str, Any]):
+
+    def __add__(self, s: Union[str, "Sequence"]) -> "Sequence":
         """
         Add a new sequence to the end and return a new Sequence
         """
@@ -40,16 +121,77 @@ class _Sequence():
         elif isinstance(s, self.__class__):
             return self.__class__(self._seq + s._seq)
         else:
-            raise TypeError(f"Only str or {self.__class__.__name__} can be add to {self.__class__.__name__}")
-    
-    def __radd__(self, s:Union[str, Any]):
+            raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
+
+    def __radd__(self, s: Union[str, "Sequence"]) -> "Sequence":
         """
         Add a new sequence to the start and return a new Sequence
         """
         if isinstance(s, str):
             return self.__class__(s + self._seq)
         elif isinstance(s, self.__class__):
-            return self.__class__(s._seq+self._seq)
+            return self.__class__(s._seq + self._seq)
         else:
-            raise TypeError(f"Only str or {self.__class__.__name__} can be add to {self.__class__.__name__}")
+            raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
 
+
+class Peptide(Sequence):
+    @property
+    def pl(self):
+        if not hasattr(self, "_pl"):
+            pass
+    
+    @property
+    def Hphob(self):
+        if not hasattr(self, "_Hphob"):
+            pass
+
+
+class RNA(Sequence):
+    @property
+    def reverse(self):
+        """
+        Reverse the sequence
+        """
+        self._seq = self._seq.reversed()
+
+    @property 
+    def complement(self):
+        "将该序列变为其互补序列并返回序列"
+        pass
+
+    @property 
+    def GC(self):
+        " 返回序列中GC含量,计算后保存在_GC中"
+        pass
+    def reversed(self):
+        "计算返回序列的反向序列"
+        pass
+
+    def complemented(self):
+        "计算返回序列的互补序列"
+        pass
+
+    def getOrf(self, multi=False, replace=False):
+        "multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列"
+        if not hasattr(self, "orf"):
+            pass
+        
+    def transcript(self, filter):
+        "filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。"
+        if not hasattr(self, "peptide"):
+            pass
+    
+    def _print(self):
+        return f"5'-{self._seq}-3'"
+
+
+class DNA(RNA):
+    def translate(self):
+        if not hasattr(self, "_translate"):
+            self._translate = RNA(self._seq.replace("T", "U"))
+            
+        return self._translate
+
+    def transcript(self, filter=True):
+        return self.translate().transcript(filter)

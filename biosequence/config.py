@@ -1,13 +1,20 @@
+test_dna = 'AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG'
+
+
+################################## Coden Table ##################################
 TABLE = {
-        "AAA":"K",	"AAC":"N",	"AAG":"K",	"AAT":"N",	"ACA":"T",	"ACC":"T",	"ACG":"T",	"ACT":"T",	
-        "AGA":"R",	"AGC":"S",	"AGG":"R",	"AGT":"S",	"ATA":"I",	"ATC":"I",	"ATG":"M",	"ATT":"I",	
-        "CAA":"Q",	"CAC":"H",	"CAG":"Q",	"CAT":"H",	"CCA":"P",	"CCC":"P",	"CCG":"P",	"CCT":"P",	
-        "CGA":"R",	"CGC":"R",	"CGG":"R",	"CGT":"R",	"CTA":"L",	"CTC":"L",	"CTG":"L",	"CTT":"L",	
-        "GAA":"E",	"GAC":"D",	"GAG":"E",	"GAT":"D",	"GCA":"A",	"GCC":"A",	"GCG":"A",	"GCT":"A",	
-        "GGA":"G",	"GGC":"G",	"GGG":"G",	"GGT":"G",	"GTA":"V",	"GTC":"V",	"GTG":"V",	"GTT":"V",	
-        "TAA":"Stop",	"TAC":"Y",	"TAG":"Stop",	"TAT":"Y",	"TCA":"S",	"TCC":"S",	"TCG":"S",	"TCT":"S",	
-        "TGA":"Stop",	"TGC":"C",	"TGG":"W",	"TGT":"C",	"TTA":"L",	"TTC":"F",	"TTG":"L",	"TTT":"F",
+        "AAA":"K",	"AAC":"N",	"AAG":"K",	"AAU":"N",	"ACA":"T",	"ACC":"T",	"ACG":"T",	"ACU":"T",	
+        "AGA":"R",	"AGC":"S",	"AGG":"R",	"AGU":"S",	"AUA":"I",	"AUC":"I",	"AUG":"M",	"AUU":"I",	
+        "CAA":"Q",	"CAC":"H",	"CAG":"Q",	"CAU":"H",	"CCA":"P",	"CCC":"P",	"CCG":"P",	"CCU":"P",	
+        "CGA":"R",	"CGC":"R",	"CGG":"R",	"CGU":"R",	"CUA":"L",	"CUC":"L",	"CUG":"L",	"CUU":"L",	
+        "GAA":"E",	"GAC":"D",	"GAG":"E",	"GAU":"D",	"GCA":"A",	"GCC":"A",	"GCG":"A",	"GCU":"A",	
+        "GGA":"G",	"GGC":"G",	"GGG":"G",	"GGU":"G",	"GUA":"V",	"GUC":"V",	"GUG":"V",	"GUU":"V",	
+        "UAA":"Stop",	"UAC":"Y",	"UAG":"Stop",	"UAU":"Y",	"UCA":"S",	"UCC":"S",	"UCG":"S",	"UCU":"S",	
+        "UGA":"Stop",	"UGC":"C",	"UGG":"W",	"UGU":"C",	"UUA":"L",	"UUC":"F",	"UUG":"L",	"UUU":"F",
         }
+
+START_CODON = "AUG"
+
 def setTable(json_file):
     import json
     from pathlib import Path
@@ -18,20 +25,36 @@ def setTable(json_file):
     with open(filename) as f:
         TABLE = json.load(f)
 
-
-START_CODON = "ATG"
- 
-test_dna = 'AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG'
-
+################################ Align Paremeter ################################
 class AlignmentConfig:
     MATCH = 2
     MISMATCH = -3
     GAP_OPEN = -3
     GAP_EXTEND = -3
 
-def setAlignPara(match, mismatch, gap_open, gap_extend):
-    global AlignmentConfig
+def setAlignPara(match=2, mismatch=-3, gap_open=-3, gap_extend=-3):
     AlignmentConfig.MATCH = match
     AlignmentConfig.MISMATCH = mismatch
     AlignmentConfig.GAP_OPEN = gap_open
     AlignmentConfig.GAP_EXTEND = gap_extend
+
+############################### Molecular Weight ################################
+# All molecular weight were subtracted a H2O（18.0）
+MW = {
+    "Peptide_MW":{
+            "A":71.1,   "C":103.2,  "D":115.1,   "E":129.1,  "F":147.2, 	
+            "G":57.1,   "H":137.2,  "I":113.2,   "K":128.2,  "L":113.2, 	
+            "M":131.2,  "N":114.1,  "P":97.1,    "Q":128.15, "R":156.20, 	
+            "S":87.09,  "T":101.16, "V":99.15,   "W":186.22, "Y":163.19,
+            },
+    "DNA_MW": {"A":313.2,  "C":289.2,  "G":329.2,  "T":304.2,},
+    "RNA_MW": {"A":329.2,  "C":305.2,  "G":345.2,  "U":306.2,},
+    
+}
+# refer to https://www.thermofisher.cn/cn/zh/home/references/ambion-tech-support/rna-tools-and-calculators/dna-and-rna-molecular-weights-and-conversions.html
+
+############################## Nuclear Acid Info ################################
+NC_INFO = {
+    "DNA_COMPLEMENT": {"A":"T", "C":"G", "G":"C", "T":"A",},
+    "RNA_COMPLEMENT": {"A":"T", "C":"G", "G":"C", "U":"A",}
+    }

@@ -4,21 +4,21 @@
 用于分析核酸与肽段序列
 
 ---
-## Todo 20200830
-### _Sequence
-- [x] _Sequence.\__init\__(seq)
-- [x] @property _Sequence.seq()
-- [x] @property _Sequence.length()
-- [ ] @property _Sequence.weight() 计算分子量
-- [ ] _Sequence.align(subject, mode=1, boost=True, return_score=False) 序列比对
-- [ ] _Sequence.analysis()  成分分析
-- [ ] _Sequence.find(target) 查找序列
-- [ ] _Sequence.mutation(position, target) 改变序列
-- [x] _Sequence._print() 打印输出格式
-- [x] _Sequence.\__str\__()
-- [x] _Sequence.\__repr\__()
-- [x] _Sequence.\__add\__()
-- [x] _Sequence.\__radd\__()
+## Todo 20200831
+### Sequence
+- [x] Sequence.\__init\__(seq)
+- [x] @property Sequence.seq()
+- [x] @property Sequence.length()
+- [x] @property Sequence.weight() 计算分子量
+- [x] Sequence.align(subject, mode=1, boost=True, return_score=False) 序列比对
+- [x] Sequence.analysis()  成分分析
+- [x] Sequence.find(target) 查找序列
+- [x] Sequence.mutation(position, target) 改变序列
+- [x] Sequence._print() 打印输出格式
+- [x] Sequence.\__str\__()
+- [x] Sequence.\__repr\__()
+- [x] Sequence.\__add\__()
+- [x] Sequence.\__radd\__()
 
 ### RNA
 - [ ] @property RNA.revere 将该序列变为其反向序列并返回序列
@@ -57,7 +57,7 @@
 # 主要功能
 ## biosequence.Sequence
 
-### biosequence.Sequence._Sequence
+### biosequence.Sequence.Sequence
 
 生物序列的基类，RNA，DNA，Peptide都基于此类。
 序列对象可与序列对象或字符串相加，返回新的序列对象
@@ -92,7 +92,7 @@
     打印并返回序列中所有碱基/氨基酸的数量、含量
 
 ### biosequence.sequence.RNA
-继承自biosequence.Sequence._Sequence
+继承自biosequence.Sequence.Sequence
 #### 属性
 ##### revere
     将该序列变为其反向序列
@@ -135,7 +135,7 @@
     返回值为一个或多个Peptide对象
 
 ### biosequence.sequence.Peptide
-继承自biosequence.Sequence._Sequence
+继承自biosequence.Sequence.Sequence
 
 #### 属性
 ##### pl
@@ -145,11 +145,7 @@
     info from [expasy](https://web.expasy.org/protscale/)
 
 ### biosequence.config
-```python
-from biosequence import config
-# or import biosequence
-# don't from biosequence.config import xxx 
-```
+
 #### config.setTable(filename)
     序列翻译前加入此代码，可以使用自定义密码子进行翻译
 
