@@ -1,76 +1,52 @@
-from biosequence.alignment._align_utils import *
+import platform     # detect system for using .dll or .so to boost alignment
+import os
+from functools import wraps
+from ctypes import *
+from biosequence.config import AlignmentConfig
 
+def cAlgorithm(func):
+    @wraps(func)
+    def comprise(query, subject, return_score=False):
+        if not isinstance(query, bytes):
+            query = bytes(query, encoding="utf-8")
 
-def SmithWaterman(query, subject, return_score=False):
-    # initial score matrix
-    matrix = initMatrix(len(query), len(subject), 0)
-    maxNode = MatrixNode(0)
+        if not isinstance(subject, bytes):
+            subject = bytes(subject, encoding="utf-8")
 
-    # calculate score matrix
-    for i in range(1, len(query) + 1):
-        for j in range(1, len(subject) + 1):
+        query = create_string_buffer(query)
+        subject = create_string_buffer(subject)
+        aligned_query = create_string_buffer(b"", len(query) + len(subject))
+        aligned_subject = create_string_buffer(b"", len(query) + len(subject))
+        score = c_float()
+        match = c_float(AlignmentConfig.MATCH)
+        mismatch = c_float(AlignmentConfig.MISMATCH)
+        gap_open = c_float(AlignmentConfig.GAP_OPEN)
+        gap_extend = c_float(AlignmentConfig.GAP_EXTEND)
 
-            up_score, left_score, upLeft_score = getScore(
-                i, j, matrix, query[i - 1], subject[j - 1]
-            )
+        if platform.system() == "Windows":
+            suffix = ".dll"
+        elif platform.system() == "Linux":
+            suffix = ".so"
+        else:
+            suffix = ".dll"
+            print("Can't detect system, using .dll to boost Alignment")
 
-            matrix[i][j].score = max(up_score, left_score, upLeft_score, 0)
-            matrix[i][j].recordSource(up_score, left_score, upLeft_score)
+        dll_path = os.path.join(os.path.dirname(__file__), "algorithm" + suffix)
 
-            if matrix[i][j].score >= maxNode.score:
-                maxNode = matrix[i][j]
-                position = [i, j]
+        cAlign =func(dll_path)
+        cAlign(query, subject, aligned_query, aligned_subject, pointer(score), match, mismatch, gap_open, gap_extend)
 
-    # Back Tracking
-    while (node := matrix[position[0]][position[1]]).score:
-        query, subject = backTracking(position, node, query, subject)
+        query = str(aligned_query.value, encoding="utf-8")
+        subject = str(aligned_subject.value, encoding="utf-8")
 
-    # Align the sequences
-    if position[0] > position[1]:
-        subject = (position[0] - position[1]) * "." + subject
-    if position[1] > position[0]:
-        query = (position[1] - position[0]) * "." + query
-    if len(query) < len(subject):
-        query += "." * (len(subject) - len(query))
-    if len(subject) < len(query):
-        subject += "." * (len(query) - len(subject))
-    if return_score:
-        return query, subject, maxNode.score
+        if return_score:
+            score = score.value
+            return query, subject, score
             
-    return query, subject
-    
+        return query, subject
 
+    return comprise 
 
-def NeedlemanWunsch(query, subject, return_score=False):
-    # initial score matrix
-    matrix = initMatrix(len(query), len(subject), 0)
-
-    # calculate score matrix
-    for i in range(1, len(query) + 1):
-        for j in range(1, len(subject) + 1):
-
-            matrix[i][j].lScore, matrix[i][j].uScore, matrix[i][j].mScore = getScore(
-                i, j, matrix, query[i - 1], subject[j - 1]
-                )
-
-            matrix[i][j].score = max(
-                matrix[i][j].lScore,
-                matrix[i][j].uScore,
-                matrix[i][j].mScore)
-
-            matrix[i][j].recordSource()
-
-    # Back Tracking
-    position = [i, j]
-    while position[0] or position[1]:
-        node = matrix[position[0]][position[1]]
-        query, subject = backTracking(position, node, query, subject)
-
-    if return_score:
-        return query, subject, matrix[-1][-1].score
-            
-    return query, subject
-    
 
 @cAlgorithm
 def NeedlemanWunsch_c(cFile_path):

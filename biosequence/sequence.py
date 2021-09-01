@@ -4,6 +4,8 @@ import re
 from collections import Counter
 from typing import Tuple, Union, List
 from abc import ABC, abstractmethod
+from matplotlib import pyplot as plt
+
 from biosequence.align import alignment
 from biosequence import config
 
@@ -34,14 +36,13 @@ class Sequence(ABC):
             self._weight = round(sum([weight_table[e] for e in self._seq], 18),2)
         return self._weight
 
-    def align(self, subject: Union[str, "Sequence"], mode: int = 1, boost: bool = True, return_score: bool = False) -> Tuple[str, str, None] :
+    def align(self, subject: Union[str, "Sequence"], mode: int = 1, return_score: bool = False) -> Tuple[str, str, None] :
         """
         Align two sequence
         Args:
             subject: Sequence to align
             mode: 1 - Use Needleman-Wunsch to global alignment
                   2 - Use Smith-Waterman to partial alignment
-            boost: whether use c to boost calculating
             return_score: whether return align score
         Returns:
             query: Self sequence after alignmnt
@@ -53,7 +54,7 @@ class Sequence(ABC):
         elif not isinstance(subject, str):
             raise TypeError(f"Only str or {self.__class__.__name__} can be aligned to {self.__class__.__name__}")
 
-        return alignment(self._seq, subject, mode, boost, return_score)
+        return alignment(self._seq, subject, mode, return_score)
 
     def analysis(self) -> dict:
         """
@@ -141,11 +142,35 @@ class Peptide(Sequence):
         if not hasattr(self, "_pl"):
             pass
     
-    @property
-    def Hphob(self):
-        if not hasattr(self, "_Hphob"):
-            self._Hphob = round(sum(config.HYDROPATHY[aa] for aa in self._seq) / self.length,3)
-        return self._Hphob
+
+    def getHphob(self, window_size: int = 9, show_img: bool = True):
+        """
+        Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
+        Each aa's score is the average score of all aa in window_size.
+        So part of Amino Acid at begin and end don't have score
+        Args:
+            window_size: the number for calculate averge hydropathy value
+            show_img: whether to draw the result
+        Returns:
+            Hphob_list: the result of peptide's Hydropathy Score
+        """
+        if not hasattr(self, "_Hphob_lsit"):
+            _Hphob = [config.HYDROPATHY[aa] for aa in self._seq]
+            half_part = window_size // 2
+            self._Hphob_lsit = []
+            for i in range(half_part, len(_Hphob) - half_part):
+                self._Hphob_lsit.append(round(sum(_Hphob[i - half_part: i + window_size - half_part]) / window_size, 3))
+            
+        if show_img:
+            plt.title(f"Hydropathy Score for {self._seq[:4]}...{self._seq[-4:]}")
+            plt.plot(range(window_size // 2 + 1, self.length - window_size // 2 + 1), self._Hphob_lsit, linewidth=0.8)
+            plt.xlim((1, self.length + 1))
+            plt.grid(linestyle="--")
+            plt.xlabel("Position")
+            plt.ylabel("Score")
+            plt.show()
+
+        return self._Hphob_lsit
     
     def _print(self) -> str:
         return f"N'-{self._seq}-C'"

@@ -4,7 +4,7 @@
 用于分析核酸与肽段序列
 
 ---
-## Todo 20200831
+## Todo 20200901
 ### Sequence
 - [x] Sequence.\__init\__(seq)
 - [x] @property Sequence.seq()
@@ -39,7 +39,7 @@
 
 ### Peptide
 - [ ] Peptide.pl 计算肽链的等电点，第一次计算后保存在_pl中
-- [ ] Peptide.Hphob 计算肽链的亲疏水性，第一次计算后保存在_Hphob中
+- [x] Peptide.getHphob(window_size, show_img) 计算肽链的亲疏水性，第一次计算后保存在_Hphob_lsit中
     info from [expasy](https://web.expasy.org/protscale/)
 
 ### config
@@ -48,10 +48,9 @@
 
 ### biosequence.utils
 - [ ] biosequence.utils.calculatePL（peptide）： 计算等电点
-- [ ] biosequence.utils.calculateHphob（peptide）： 计算亲疏水性
 - [x] biosequence.align.alignment(query, subject, mode=1, boost=True, return_score=False)
 - [ ] biosequence.utils.parseFile(filename, type)：读取常见文件格式并返回对应的序列对象
-- [ ] biosequence.align.printAlign(seq1, seq2, spacing=10, line_length=30)：在命令行中打印两个比对序列并显示差异
+- [x] biosequence.align.printAlign(seq1, seq2, spacing=10, line_length=30, show_sequence=True)：在命令行中打印两个比对序列并显示差异。config.SYMBOL中可修改符号
 ---
 
 # 主要功能
@@ -71,16 +70,14 @@
     序列的分子量（第一次计算后保存在_weight中）
 
 #### 方法 
-##### align(subject, mode=1, boost=True, return_score=False)
-
+##### align(subject, mode=1, return_score=False)
 * subject：
     比对对象
 * mode（int）：
     1 - 使用Needleman-Wunsch进行全局比对
     2 - 使用Smith-Waterman进行局部比对
-    
-* boost（bool）：
-    是否使用c算法加速，default=True。（优化c语言算法后默认使用，并删除此参数）
+* return_score：
+    是否返回匹配分数
 
 ##### mutation(position, target)
     改变序列

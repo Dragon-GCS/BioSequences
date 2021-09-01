@@ -3,19 +3,19 @@
 #include <string.h>
 #define GAP_CHAR '-';
 
-
-
+/* Unit in Score Matrix */
 typedef struct {
-    int up;   
-    int left;   
-    int upLeft;   
-    float score;
+    int up;         /* whether go up node when back-tracking */
+    int left;       /* whether go left node when back-tracking */
+    int upLeft;     /* whether go up-left node when back-tracking */
+    float score;    /* node's final score */
+    float uScore;   /* score if route from up node */
+    float lScore;   /* score if route from left node */
+    float mScore;   /* score if route from up-left node */
 }matrixNode, *mNode;
 
-mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_extend);
-
+mNode** initMatrix(int row_length, int column_length);
 float max3(float a, float b, float c);
-
 void backTracking(mNode node, int* current_i, int* current_j, char query_base, char subject_base, char* align_query, char* align_subject, int index);
 void reverseStr(char* str);
 void release(mNode** matrix, int rows, int columns);
@@ -33,8 +33,16 @@ void SmithWaterman(char* query, char* subject,
                    float gap_open, float gap_extend);
 
 
-mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_extend)
-{   
+mNode** initMatrix(int row_length, int column_length)
+{   /*
+     *Description:  Initial the score matrix
+     *Input:    
+        @row_length:    The num of rows, equals to the len(query) + 1
+        @column_length: The num of columns, equals to the len(subject) + 1
+     *Output: None
+     *Return:
+        @matrix         The pointer of score matrix
+     */
     int i=0, j=0;
     mNode **matrix;
 
@@ -42,6 +50,7 @@ mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_
         fputs("Error: Out of space!\n", stderr);
         exit(1);
     }
+    /* create row_length x columns_length nodes*/ 
     for (i = 0; i < row_length; i++) {
         if ((matrix[i] = (mNode *) malloc(sizeof(mNode) * (column_length + 1))) == NULL)
         {
@@ -55,58 +64,75 @@ mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_
                 fputs("Error: Out of space!\n", stderr);
                 exit(1);     
             }
-            matrix[i][j]->up = 0;
-            matrix[i][j]->left = 0;
-            matrix[i][j]->upLeft = 0;
+            matrix[i][j]->uScore = 0; matrix[i][j]->lScore = 0; matrix[i][j]->mScore = 0;
+            matrix[i][j]->up = 0;     matrix[i][j]->left = 0;   matrix[i][j]->upLeft = 0;
+            matrix[i][j]->score = 0;
         }
-    }
-    matrix[0][0]->score = 0;
-    for (i = 1; i < row_length; i++) {
-        matrix[i][0]->score = gap_open + gap_extend * (i - 1);
-        matrix[i][0]->up = 1;
-    }
-    for (j = 1; j < column_length; j++) {
-        matrix[0][j]->score = gap_open + gap_extend * (i - 1);
-        matrix[0][j]->left = 1;
     }
     return matrix;
 }
 
+float max2(float a, float b) 
+{   /*
+     *Description: return the maxium of two value
+     */
+    return a > b ? a : b;
+}
 
 float max3(float a, float b, float c) 
-{
+{   /*
+     *Description: return the maxium of three value
+     */
     float f = a > b ? a : b;
     return f > c ? f : c;
 }
 
 
 void backTracking(mNode node, int* current_i, int* current_j, char query_base, char subject_base, char* align_query, char* align_subject, int index)
-{
-    
+{   /*
+     *Description: Process the back-tracking
+     *Input:
+        @node:          current node
+        @current_i:     if node->up = 1, current_i--
+        @current_j:     if node->left = 1, current_j--
+        @query_base:    base in query to compare
+        @subject_base:  base in subject to compare
+        @index:         index for aligned string
+     *Output:
+        @align_query:   aligned sting by reverse order
+        @align_subject: aligned sting by reverse order
+     *Return:           None
+     */
     if( node->left )
     {
-        *current_j -= 1;
+        (*current_j)--;
         align_query[index] = GAP_CHAR;
         align_subject[index] = subject_base;
     }
-    else if( node->up )
+   else if( node->upLeft )
     {
-        *current_i -= 1;
-        align_query[index] = query_base;
-        align_subject[index] = GAP_CHAR;
-    }
-    else if( node->upLeft )
-    {
-        *current_i -= 1;
-        *current_j -= 1;
+        (*current_i)--;
+        (*current_j)--;
         align_query[index] = query_base;
         align_subject[index] = subject_base;
-    }
+    } 
+    else if( node->up )
+    {
+        (*current_i)--;
+        align_query[index] = query_base;
+        align_subject[index] = GAP_CHAR;
+    } 
 }
 
 
 void release(mNode** matrix, int rows, int columns)
-{   
+{   /*
+     *Description: free the matrix
+     *Input:
+        @matrix:    the pointer of matrix
+        @rows:      Rows num of matrix
+        @columns    Columns of matrix
+     */
     for (int i = 0; i <= rows; i++) {
         for (int j = 0; j <= columns; j++) {
             free(matrix[i][j]);
@@ -118,7 +144,11 @@ void release(mNode** matrix, int rows, int columns)
 
 
 void reverseStr(char* str)
-{
+{   /*
+     *Description:  Reverse a string
+     *Input:     
+        @str:   Pointer of a string
+     */
     int length = strlen(str);
     int pair = length / 2;
     int last;
@@ -136,32 +166,81 @@ void NeedlemanWunsch(char* query, char* subject,
                      float* score,  
                      float match, float mismatch, 
                      float gap_open, float gap_extend) 
-{
-    int i=0, j=0, index = 0;
-    float up_score, upLeft_score, left_score, node_score;
+{   /*
+     *Description:  Align query and subject by Needleman-Wunsch
+     *Input:
+        @query:     Sequence string 1
+        @subject:   Sequence string 2
+        @match:     Score when two base are same
+        @mismatch:  Score when two base are different
+        @gap_open:  Score when gap appear
+        @gap_extend:Score when gap extend
+     *Output:
+        @aligned_query:     Sequence 1 after aligned
+        @aligned_subject:   Sequence 2 after aligned
+        @score:             Max score of align
+     *Return:   None
+     */
+    float match_score;
+    int i = 0, j = 0, index = 0;
 
     int rows = strlen(query);
     int columns = strlen(subject);
-
-    mNode **score_matrix = initMatrix(rows+1, columns+1, gap_open, gap_extend);
     
-    // Calculate the score
+    // Initial the score matrix
+    mNode **score_matrix = initMatrix(rows+1, columns+1);
+
+    // Assign init score to the 1st column's and 1st row's node
+    score_matrix[0][0]->uScore = gap_open;
+    score_matrix[0][0]->lScore = gap_open;
+    // Node's score = maxium of uScore, lScore and mScore
+    // Beacause gap open is minus and mScore is zero, the node's score shoud be zero
+
     for (i = 1; i <= rows; i++) {
-        for (j = 1; j <= columns; j++) {
-
-            up_score = score_matrix[i - 1][j]->score + ( score_matrix[i - 1][j]->up ? gap_extend : gap_open);
-            left_score = score_matrix[i][j -1]->score + (score_matrix[i][j -1]->left ? gap_extend : gap_open);
-            upLeft_score = score_matrix[i - 1][j -1]->score + (query[i-1] == subject[j-1] ? match : mismatch);
-
-            node_score = max3(up_score, left_score, upLeft_score);
-
-            score_matrix[i][j]->score = node_score;
-            if (up_score == node_score) score_matrix[i][j]->up = 1;
-            if (left_score == node_score) score_matrix[i][j]->left = 1;
-            if (upLeft_score == node_score) score_matrix[i][j]->upLeft = 1;
-        }
+        score_matrix[i][0]->uScore = 2 * gap_open + gap_extend * (i - 1);
+        score_matrix[i][0]->lScore = gap_open + gap_extend * (i - 1);
+        score_matrix[i][0]->mScore = gap_open + gap_extend * (i - 1);
+        score_matrix[i][0]->score = max3(score_matrix[i][0]->uScore, 
+                                         score_matrix[i][0]->lScore, 
+                                         score_matrix[i][0]->mScore);
+        score_matrix[i][0]->up = 1;
+    }
+    for (j = 1; j <= columns; j++) {
+        score_matrix[0][j]->uScore = gap_open + gap_extend * (i - 1);
+        score_matrix[0][j]->lScore = 2 * gap_open + gap_extend * (i - 1);
+        score_matrix[0][j]->mScore = gap_open + gap_extend * (i - 1);
+        score_matrix[0][j]->score = max3(score_matrix[0][j]->uScore, 
+                                         score_matrix[0][j]->lScore, 
+                                         score_matrix[0][j]->mScore);
+        score_matrix[0][j]->left = 1;
     }
 
+    // Calculate the score
+    for (i = 1; i <= rows; i++) 
+    {
+        for (j = 1; j <= columns; j++) 
+        {
+            score_matrix[i][j]->uScore = max2(score_matrix[i - 1][j]->mScore + gap_open,
+                                              score_matrix[i - 1][j]->uScore + gap_extend);
+            score_matrix[i][j]->lScore = max2(score_matrix[i][j - 1]->mScore + gap_open,
+                                              score_matrix[i][j - 1]->lScore + gap_extend);
+
+            match_score = query[i-1] == subject[j-1] ? match : mismatch;
+            score_matrix[i][j]->mScore = max3(score_matrix[i - 1][j - 1]->uScore + match_score,
+                                              score_matrix[i - 1][j - 1]->lScore + match_score,
+                                              score_matrix[i - 1][j - 1]->mScore + match_score);
+            
+
+            score_matrix[i][j]->score = max3(score_matrix[i][j]->uScore, 
+                                             score_matrix[i][j]->lScore, 
+                                             score_matrix[i][j]->mScore);
+
+            if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) score_matrix[i][j]->up = 1;
+            if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) score_matrix[i][j]->left = 1;
+            if (score_matrix[i][j]->mScore == score_matrix[i][j]->score) score_matrix[i][j]->upLeft = 1;
+        }
+    }
+    // record the max score
     *score = score_matrix[rows][columns]->score;
     
     // get the aligned sequence by back-tracking
@@ -186,46 +265,77 @@ void SmithWaterman(char* query, char* subject,
                    float* score,  
                    float match, float mismatch, 
                    float gap_open, float gap_extend)
-{
-    int i=0, j=0, index = 0;
-    float up_score, upLeft_score, left_score, node_score;
-    int max_i, max_j;
+{   /*
+     *Description:  Align query and subject by Smith-Waterman
+     *Input:
+        @query:     Sequence string 1
+        @subject:   Sequence string 2
+        @match:     Score when two base are same
+        @mismatch:  Score when two base are different
+        @gap_open:  Score when gap appear
+        @gap_extend:Score when gap extend
+     *Output:
+        @aligned_query:     Sequence 1 after aligned
+        @aligned_subject:   Sequence 2 after aligned
+        @score:             Max score of align
+     *Return:   None
+     */
+    float match_score;
+    int i = 0, j = 0, index = 0;
+    float up_score, upLeft_score, left_score;
+    int max_i = 0, max_j = 0;
     *score = 0;
 
     int rows = strlen(query);
     int columns = strlen(subject);
 
-    mNode **score_matrix = initMatrix(rows+1, columns+1, 0, 0);
-    
+    // Initial the score matrix
+    mNode **score_matrix = initMatrix(rows+1, columns+1);
+
     // Calculate the score
-    for (i = 1; i <= rows; i++) {
-        for (j = 1; j <= columns; j++) {
+    for (i = 1; i <= rows; i++) 
+    {
+        for (j = 1; j <= columns; j++)
+        {
 
-            up_score = score_matrix[i - 1][j]->score + ( score_matrix[i - 1][j]->up ? gap_extend : gap_open);
-            left_score = score_matrix[i][j -1]->score + (score_matrix[i][j -1]->left ? gap_extend : gap_open);
-            upLeft_score = score_matrix[i - 1][j -1]->score + (query[i-1] == subject[j-1] ? match : mismatch);
+            score_matrix[i][j]->uScore = max3(score_matrix[i - 1][j]->mScore + gap_open,
+                                              score_matrix[i - 1][j]->uScore + gap_extend,
+                                              0);
+            score_matrix[i][j]->lScore = max3(score_matrix[i][j - 1]->mScore + gap_open,
+                                              score_matrix[i][j - 1]->lScore + gap_extend,
+                                              0);
 
-            node_score = max3(up_score, left_score, upLeft_score);
-            if (node_score < 0)  node_score = 0;
-
-            score_matrix[i][j]->score = node_score;
-            if (up_score == node_score) score_matrix[i][j]->up = 1;
-            if (left_score == node_score) score_matrix[i][j]->left = 1;
-            if (upLeft_score == node_score) score_matrix[i][j]->upLeft = 1;
-
-            if (node_score >= (*score))
-            {   
-                *score = node_score;
-                max_i = i; max_j = j;
-            }
+            match_score = query[i-1] == subject[j-1] ? match : mismatch;
+            score_matrix[i][j]->mScore = max2(0, max3(
+                                              score_matrix[i - 1][j - 1]->uScore + match_score,
+                                              score_matrix[i - 1][j - 1]->lScore + match_score,
+                                              score_matrix[i - 1][j - 1]->mScore + match_score));
             
+
+            score_matrix[i][j]->score = max3(score_matrix[i][j]->uScore, 
+                                             score_matrix[i][j]->lScore, 
+                                             score_matrix[i][j]->mScore);
+
+            if( score_matrix[i][j]->score != 0)
+            {
+                if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) score_matrix[i][j]->up = 1;
+                if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) score_matrix[i][j]->left = 1;
+                if (score_matrix[i][j]->mScore == score_matrix[i][j]->score) score_matrix[i][j]->upLeft = 1;
+                
+                // Recode the max score and its positon
+                if (score_matrix[i][j]->score >= (*score) )
+                {   
+                    *score = score_matrix[i][j]->score;
+                    max_i = i; max_j = j;
+                }
+            }
         }
     }
 
     
     // get the aligned sequence by back-tracking
     i = max_i; j=max_j;
-    while(score_matrix[i][j]->score)
+    while(score_matrix[i][j]->score != 0)
     {
         backTracking(score_matrix[i][j], &i, &j, query[i-1], subject[j-1], aligned_query, aligned_subject, index);
         index++;
@@ -237,4 +347,30 @@ void SmithWaterman(char* query, char* subject,
     reverseStr(aligned_subject);
     
     release(score_matrix, rows, columns);
+}
+
+int main() {
+    char s[1000];
+    char r[1000];
+    char as[1000];
+    char ar[1000];
+    float score, match=5, mismatch=-4, gap_open=-10, gap_extend=-0.5;
+    printf("The 1st seq: ");
+    scanf("%s", s);
+    printf("The 2nd seq: ");
+    scanf("%s", r);
+    NeedlemanWunsch(s, r,as,ar, &score, match, mismatch, gap_open,gap_extend);
+
+    int i = 0;
+    while(as[i] != '\0')
+    {
+        printf("%c", as[i++]);
+    }
+    i = 0;
+    while(ar[i] != '\0')
+    {
+        printf("%c", ar[i++]);
+    }
+    return 0;
+
 }

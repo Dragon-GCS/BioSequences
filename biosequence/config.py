@@ -1,5 +1,10 @@
 test_dna = 'AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG'
 
+################################## About utils ##################################
+
+SYMBOL = {
+    "printAlign": {"match": "┃", "mismatch":"•", "gap":"━"} # replace "· - |" or other fixed width character
+}
 
 ################################## Coden Table ##################################
 TABLE = {
@@ -60,7 +65,7 @@ NC_INFO = {
     }
 
 
-############################## Peptide Info ################################
+################################# Peptide Info ##################################
 # Author(s): Kyte J., Doolittle R.F.
 # Reference: J. Mol. Biol. 157:105-132(1982).
 HYDROPATHY = {
