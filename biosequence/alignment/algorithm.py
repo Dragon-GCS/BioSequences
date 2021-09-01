@@ -49,18 +49,23 @@ def NeedlemanWunsch(query, subject, return_score=False):
     for i in range(1, len(query) + 1):
         for j in range(1, len(subject) + 1):
 
-            up_score, left_score, upLeft_score = getScore(
+            matrix[i][j].lScore, matrix[i][j].uScore, matrix[i][j].mScore = getScore(
                 i, j, matrix, query[i - 1], subject[j - 1]
-            )
+                )
 
-            matrix[i][j].score = max(up_score, left_score, upLeft_score)
-            matrix[i][j].recordSource(up_score, left_score, upLeft_score)
+            matrix[i][j].score = max(
+                matrix[i][j].lScore,
+                matrix[i][j].uScore,
+                matrix[i][j].mScore)
+
+            matrix[i][j].recordSource()
 
     # Back Tracking
     position = [i, j]
     while position[0] or position[1]:
         node = matrix[position[0]][position[1]]
         query, subject = backTracking(position, node, query, subject)
+
     if return_score:
         return query, subject, matrix[-1][-1].score
             

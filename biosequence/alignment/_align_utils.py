@@ -7,18 +7,25 @@ from biosequence.config import AlignmentConfig
 
 
 class MatrixNode:
-    def __init__(self, score):
-        self.score = score
+    def __init__(self, lScore, uScore, mScore):
+        
+        self.uScore = 0
+        self.lScore = 0
+        self.mScore = 0
+        self.score = max(lScore,uScore,mScore)
         self.up = 0
         self.left = 0
         self.upLeft = 0
 
-    def recordSource(self, up_score, left_score, upLeft_score):
-        if self.score == up_score:
+    def getScore(self):
+        self.score = max(self.lScore,self.uScore,self.mScore)
+
+    def recordSource(self):
+        if self.score == self.uScore:
             self.up = 1
-        if self.score == left_score:
+        if self.score == self.lScore:
             self.left = 1
-        if self.score == upLeft_score:
+        if self.score == self.mScore:
             self.upLeft = 1
 
 
@@ -32,15 +39,26 @@ def initMatrix(length1, length2, GAP):
     Returns:
         matrix: Initiallized matrix
     """
-    matrix = [[MatrixNode(0) for _ in range(length2 + 1)] for __ in range(length1 + 1)]
-
+    matrix = [[MatrixNode(0,0,0) for _ in range(length2 + 1)] for __ in range(length1 + 1)]
+    matrix[0][0].lScore = AlignmentConfig.GAP_OPEN
+    matrix[0][0].uScore = AlignmentConfig.GAP_OPEN
+    matrix[0][0].mScore = 0
+    matrix[0][0].getScore()
+    
     for i in range(1, length1 + 1):
-        matrix[i][0].score = matrix[i - 1][0].score + GAP
-        matrix[i][0].up = True
-    for j in range(1, length2 + 1):
-        matrix[0][j].score = matrix[0][j - 1].score + GAP
-        matrix[0][j].left = True
+        matrix[i][0].uScore = 2 * AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[i][0].lScore = AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[i][0].mScore = AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[i][0].getScore()
+        matrix[i][0].up = 1
 
+    for j in range(1, length2 + 1):
+        matrix[0][j].uScore = AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[0][j].lScore = 2 * AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[0][j].mScore = AlignmentConfig.GAP_OPEN + (i - 1) * AlignmentConfig.GAP_EXTEND
+        matrix[0][j].getScore()
+        matrix[0][j].left = 1
+        
     return matrix
 
 
@@ -58,17 +76,22 @@ def getScore(current_i, current_j, matrix, current_base1, current_base2):
         left_score: The score if the route came from left node
         upleft_score: The score if the route came from upleft node
     """
+    match_score = AlignmentConfig.MATCH if current_base1 == current_base2 else AlignmentConfig.MISMATCH
+    
+    uScore = max(
+                matrix[current_i - 1][current_j].mScore + AlignmentConfig.GAP_OPEN, 
+                matrix[current_i - 1][current_j].uScore + AlignmentConfig.GAP_EXTEND)
 
-    up_score = matrix[current_i - 1][current_j].score + (
-        AlignmentConfig.GAP_EXTEND if matrix[current_i - 1][current_j].up else AlignmentConfig.GAP_OPEN
-    )
-    left_score = matrix[current_i][current_j - 1].score + (
-        AlignmentConfig.GAP_EXTEND if matrix[current_i][current_j - 1].left else AlignmentConfig.GAP_OPEN
-    )
-    upLeft_score = matrix[current_i - 1][current_j - 1].score + (
-        AlignmentConfig.MATCH if current_base1 == current_base2 else AlignmentConfig.MISMATCH)
+    lScore = max(
+                matrix[current_i][current_j - 1].mScore + AlignmentConfig.GAP_OPEN,
+                matrix[current_i][current_j - 1].mScore + AlignmentConfig.GAP_EXTEND)
 
-    return up_score, left_score, upLeft_score
+    mScore = max(
+                matrix[current_i - 1][current_j - 1].mScore + match_score,
+                matrix[current_i - 1][current_j - 1].uScore + match_score,
+                matrix[current_i - 1][current_j - 1].lScore + match_score)
+    return lScore, uScore, mScore
+    
 
 
 def backTracking(current_position, current_node, sequence1, sequence2):
@@ -83,8 +106,17 @@ def backTracking(current_position, current_node, sequence1, sequence2):
         aligned_sequence1: aligned sequence1
         aligned_sequence2: aligned sequence2       
     """
+    # 向上移动说明seq2(row)的这个碱基要去匹配seq1(column)的下一个碱基
+    # 即此时seq1的碱基匹配到的seq2为一个空位，因此seq2要在此增加一个‘-’
+    # 即匹配的序列中，align_seq2[j]='-'，align_seq1[i]=seq1[i]
+    if current_node.up:
+        sequence2 = "".join(
+            [sequence2[: current_position[1]], "-", sequence2[current_position[1] :]]
+        )
+        current_position[0] -= 1
+
     # 向左上移动说明seq1(column)的当前碱基与seq2(row)的当前碱基匹配
-    if current_node.upLeft:
+    elif current_node.upLeft:
         current_position[0] -= 1
         current_position[1] -= 1
     # 向左移动说明seq1(column)的这个碱基要去匹配seq2(row)的下一个碱基
@@ -95,16 +127,9 @@ def backTracking(current_position, current_node, sequence1, sequence2):
             [sequence1[: current_position[0]], "-", sequence1[current_position[0] :]]
         )
         current_position[1] -= 1
-    # 向上移动说明seq2(row)的这个碱基要去匹配seq1(column)的下一个碱基
-    # 即此时seq1的碱基匹配到的seq2为一个空位，因此seq2要在此增加一个‘-’
-    # 即匹配的序列中，align_seq2[j]='-'，align_seq1[i]=seq1[i]
-    elif current_node.up:
-        sequence2 = "".join(
-            [sequence2[: current_position[1]], "-", sequence2[current_position[1] :]]
-        )
-        current_position[0] -= 1
-
     return sequence1, sequence2
+
+    
 
 
 def test(func, sequence1="", sequence2="", show_matrix=False):
@@ -154,11 +179,11 @@ def cAlgorithm(func):
         subject = create_string_buffer(subject)
         aligned_query = create_string_buffer(b"", len(query) + len(subject))
         aligned_subject = create_string_buffer(b"", len(query) + len(subject))
-        score = c_int()
-        match = c_int(AlignmentConfig.MATCH)
-        mismatch = c_int(AlignmentConfig.MISMATCH)
-        gap_open = c_int(AlignmentConfig.GAP_OPEN)
-        gap_extend = c_int(AlignmentConfig.GAP_EXTEND)
+        score = c_float()
+        match = c_float(AlignmentConfig.MATCH)
+        mismatch = c_float(AlignmentConfig.MISMATCH)
+        gap_open = c_float(AlignmentConfig.GAP_OPEN)
+        gap_extend = c_float(AlignmentConfig.GAP_EXTEND)
 
         if platform.system() == "Windows":
             suffix = ".dll"

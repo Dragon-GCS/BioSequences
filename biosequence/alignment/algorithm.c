@@ -9,32 +9,31 @@ typedef struct {
     int up;   
     int left;   
     int upLeft;   
-    int score;
+    float score;
 }matrixNode, *mNode;
 
-mNode** initMatrix(int row_length, int column_length, int gap_open, int gap_extend);
+mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_extend);
 
-int max3(int a, int b, int c);
+float max3(float a, float b, float c);
 
 void backTracking(mNode node, int* current_i, int* current_j, char query_base, char subject_base, char* align_query, char* align_subject, int index);
 void reverseStr(char* str);
 void release(mNode** matrix, int rows, int columns);
 
-void assignAlignParameter(char gap_char, int match, int mismatch, int gap_open, int gap_extend);
 void NeedlemanWunsch(char* query, char* subject, 
                      char* aligned_query, char* aligned_subject,
-                     int* score,  
-                     int match, int mismatch, 
-                     int gap_open, int gap_extend);
+                     float* score,  
+                     float match, float mismatch, 
+                     float gap_open, float gap_extend);
 
 void SmithWaterman(char* query, char* subject, 
                    char* aligned_query, char* aligned_subject, 
-                   int* score,  
-                   int match, int mismatch, 
-                   int gap_open, int gap_extend);
+                   float* score,  
+                   float match, float mismatch, 
+                   float gap_open, float gap_extend);
 
 
-mNode** initMatrix(int row_length, int column_length, int gap_open, int gap_extend)
+mNode** initMatrix(int row_length, int column_length, float gap_open, float gap_extend)
 {   
     int i=0, j=0;
     mNode **matrix;
@@ -74,23 +73,17 @@ mNode** initMatrix(int row_length, int column_length, int gap_open, int gap_exte
 }
 
 
-int max3(int a, int b, int c) 
+float max3(float a, float b, float c) 
 {
-    int f = a > b ? a : b;
+    float f = a > b ? a : b;
     return f > c ? f : c;
 }
 
 
 void backTracking(mNode node, int* current_i, int* current_j, char query_base, char subject_base, char* align_query, char* align_subject, int index)
 {
-    if( node->upLeft )
-    {
-        *current_i -= 1;
-        *current_j -= 1;
-        align_query[index] = query_base;
-        align_subject[index] = subject_base;
-    }
-    else if( node->left )
+    
+    if( node->left )
     {
         *current_j -= 1;
         align_query[index] = GAP_CHAR;
@@ -101,6 +94,13 @@ void backTracking(mNode node, int* current_i, int* current_j, char query_base, c
         *current_i -= 1;
         align_query[index] = query_base;
         align_subject[index] = GAP_CHAR;
+    }
+    else if( node->upLeft )
+    {
+        *current_i -= 1;
+        *current_j -= 1;
+        align_query[index] = query_base;
+        align_subject[index] = subject_base;
     }
 }
 
@@ -133,12 +133,12 @@ void reverseStr(char* str)
 
 void NeedlemanWunsch(char* query, char* subject, 
                      char* aligned_query, char* aligned_subject, 
-                     int* score,  
-                     int match, int mismatch, 
-                     int gap_open, int gap_extend) 
+                     float* score,  
+                     float match, float mismatch, 
+                     float gap_open, float gap_extend) 
 {
     int i=0, j=0, index = 0;
-    int up_score, upLeft_score, left_score, node_score;
+    float up_score, upLeft_score, left_score, node_score;
 
     int rows = strlen(query);
     int columns = strlen(subject);
@@ -183,12 +183,12 @@ void NeedlemanWunsch(char* query, char* subject,
 
 void SmithWaterman(char* query, char* subject, 
                    char* aligned_query, char* aligned_subject, 
-                   int* score,  
-                   int match, int mismatch, 
-                   int gap_open, int gap_extend)
+                   float* score,  
+                   float match, float mismatch, 
+                   float gap_open, float gap_extend)
 {
     int i=0, j=0, index = 0;
-    int up_score, upLeft_score, left_score, node_score;
+    float up_score, upLeft_score, left_score, node_score;
     int max_i, max_j;
     *score = 0;
 

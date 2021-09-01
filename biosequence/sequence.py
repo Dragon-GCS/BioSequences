@@ -31,7 +31,7 @@ class Sequence(ABC):
         """
         if not hasattr(self, "_weight"):
             weight_table = config.MW[self.__class__.__name__ + "_MW"]
-            self._weight = sum([weight_table[e] for e in self._seq], 18)
+            self._weight = round(sum([weight_table[e] for e in self._seq], 18),2)
         return self._weight
 
     def align(self, subject: Union[str, "Sequence"], mode: int = 1, boost: bool = True, return_score: bool = False) -> Tuple[str, str, None] :
@@ -137,14 +137,18 @@ class Sequence(ABC):
 
 class Peptide(Sequence):
     @property
-    def pl(self):
+    def pI(self):
         if not hasattr(self, "_pl"):
             pass
     
     @property
     def Hphob(self):
         if not hasattr(self, "_Hphob"):
-            pass
+            self._Hphob = round(sum(config.HYDROPATHY[aa] for aa in self._seq) / self.length,3)
+        return self._Hphob
+    
+    def _print(self) -> str:
+        return f"N'-{self._seq}-C'"
 
 
 class RNA(Sequence):
