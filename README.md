@@ -22,13 +22,13 @@ python >= 3.8.2
 - [x] Sequence.\__radd\__()
 
 ### RNA
-- [ ] @property RNA.revere 将该序列变为其反向序列并返回序列
-- [ ] @property RNA.complement 将该序列变为其互补序列并返回序列
-- [ ] @property RNA.GC 返回序列中GC含量,计算后保存在_GC中
+- [x] @property RNA.revered 返回其反向序列
+- [x] @property RNA.complemented 返回其互补序列
+- [x] @property RNA.GC 返回序列中GC含量,计算后保存在_GC中
 - [ ] RNA.orf 序列中的开放读码框，需要先经过get_orf()计算才有此属性
 - [ ] RNA.peptide 序列翻译产物，需要先经过tanscript()计算才有此属性
-- [ ] RNA.reversed() 计算返回序列的反向序列
-- [ ] RNA.complemented() 计算返回序列的互补序列
+- [x] RNA.reverse() 将序列变为其反向序列
+- [x] RNA.complement() 将序列变为其互补序列
 - [ ] RNA.getOrf(multi=False, replace=False) multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列
 - [ ] RNA.transcript(filter) filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。
 

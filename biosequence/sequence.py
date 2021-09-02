@@ -6,7 +6,7 @@ from typing import Tuple, Union, List
 from abc import ABC, abstractmethod
 
 from biosequence.align import alignment
-from biosequence.config import HYDROPATHY, MW, PK
+from biosequence.config import HYDROPATHY, MW, PK, NC_INFO
 
 class Sequence(ABC):
     def __init__(self, seq: str = "") -> None:
@@ -107,10 +107,7 @@ class Sequence(ABC):
         """
         Output sequence info
         """
-        if self.length < 50:
-            return self._seq
-        else:
-            return f"{self._seq[:10]}...{self._seq[-10:]}"
+        return self._seq
 
     def __add__(self, s: Union[str, "Sequence"]) -> "Sequence":
         if isinstance(s, str):
@@ -217,28 +214,43 @@ class Peptide(Sequence):
 
 class RNA(Sequence):
     @property
-    def reverse(self):
+    def reversed(self):
         """
-        Reverse the sequence
+        Return reversed sequence
         """
-        self._seq = self._seq.reversed()
+        return self.__class__(self._seq[::-1])
 
     @property 
-    def complement(self):
-        "将该序列变为其互补序列并返回序列"
-        pass
-
+    def complemented(self):
+        """
+        Return complemented sequence
+        """
+        complement_seq = self.__class__()
+        for bp in self._seq:
+            complement_seq = NC_INFO[self.__class__.__name__ + "_COMPLEMENT"][bp] + complement_seq
+        return complement_seq
+    
     @property 
     def GC(self):
-        " 返回序列中GC含量,计算后保存在_GC中"
-        pass
-    def reversed(self):
-        "计算返回序列的反向序列"
-        pass
+        """
+        Calculate the GC percentage
+        """
+        if not hasattr(self, "_GC"):
+            self._GC = round((self.composition["C"] + self.composition["G"]) / self.length, 4)
+        return self._GC
+    
+    def complement(self):
+        """
+        Change the sequence to complemented
+        """
+        self._seq = self.complemented._seq
 
-    def complemented(self):
-        "计算返回序列的互补序列"
-        pass
+    def reverse(self):
+        """
+        Change the sequence to reversed
+        """
+        self._seq = self.reversed._seq
+
 
     def getOrf(self, multi=False, replace=False):
         "multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列"
