@@ -3,5 +3,5 @@
 /.seqVenv/
 
 # **.dll
-**.so
+# **.so
 *.py
