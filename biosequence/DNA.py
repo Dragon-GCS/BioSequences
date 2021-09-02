@@ -86,6 +86,7 @@ class DNA():
 if __name__ == "__main__":
     d = DNA(config.test_dna)
     d.get_orf()
+    
     d.translate()
     print(d.orf)
     print(d.peptide)

@@ -3,19 +3,27 @@ test_dna = 'AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATA
 ################################## About utils ##################################
 
 SYMBOL = {
-    "printAlign": {"match": "┃", "mismatch":"•", "gap":"━"} # replace "· - |" or other fixed width character
+    "printAlign": ("┃", "•", "━") # replace "· - |" or other fixed width character
 }
 
 ################################## Coden Table ##################################
 TABLE = {
-        "AAA":"K",	"AAC":"N",	"AAG":"K",	"AAU":"N",	"ACA":"T",	"ACC":"T",	"ACG":"T",	"ACU":"T",	
-        "AGA":"R",	"AGC":"S",	"AGG":"R",	"AGU":"S",	"AUA":"I",	"AUC":"I",	"AUG":"M",	"AUU":"I",	
-        "CAA":"Q",	"CAC":"H",	"CAG":"Q",	"CAU":"H",	"CCA":"P",	"CCC":"P",	"CCG":"P",	"CCU":"P",	
-        "CGA":"R",	"CGC":"R",	"CGG":"R",	"CGU":"R",	"CUA":"L",	"CUC":"L",	"CUG":"L",	"CUU":"L",	
-        "GAA":"E",	"GAC":"D",	"GAG":"E",	"GAU":"D",	"GCA":"A",	"GCC":"A",	"GCG":"A",	"GCU":"A",	
-        "GGA":"G",	"GGC":"G",	"GGG":"G",	"GGU":"G",	"GUA":"V",	"GUC":"V",	"GUG":"V",	"GUU":"V",	
-        "UAA":"Stop",	"UAC":"Y",	"UAG":"Stop",	"UAU":"Y",	"UCA":"S",	"UCC":"S",	"UCG":"S",	"UCU":"S",	
-        "UGA":"Stop",	"UGC":"C",	"UGG":"W",	"UGU":"C",	"UUA":"L",	"UUC":"F",	"UUG":"L",	"UUU":"F",
+        "AAA":"K",	    "AAC":"N",	    "AAG":"K",	    "AAU":"N",	
+        "ACA":"T",	    "ACC":"T",	    "ACG":"T",	    "ACU":"T",	
+        "AGA":"R",	    "AGC":"S",	    "AGG":"R",	    "AGU":"S",	
+        "AUA":"I",	    "AUC":"I",	    "AUG":"M",	    "AUU":"I",	
+        "CAA":"Q",	    "CAC":"H",	    "CAG":"Q",	    "CAU":"H",	
+        "CCA":"P",	    "CCC":"P",	    "CCG":"P",	    "CCU":"P",	
+        "CGA":"R",	    "CGC":"R",	    "CGG":"R",	    "CGU":"R",	
+        "CUA":"L",	    "CUC":"L",	    "CUG":"L",	    "CUU":"L",	
+        "GAA":"E",	    "GAC":"D",	    "GAG":"E",	    "GAU":"D",	
+        "GCA":"A",	    "GCC":"A",	    "GCG":"A",	    "GCU":"A",	
+        "GGA":"G",	    "GGC":"G",	    "GGG":"G",	    "GGU":"G",	
+        "GUA":"V",	    "GUC":"V",	    "GUG":"V",	    "GUU":"V",	
+        "UAA":"Stop",	"UAC":"Y",	    "UAG":"Stop",	"UAU":"Y",	
+        "UCA":"S",	    "UCC":"S",	    "UCG":"S",  	"UCU":"S",	
+        "UGA":"Stop",	"UGC":"C",	    "UGG":"W",	    "UGU":"C",	
+        "UUA":"L",	    "UUC":"F",	    "UUG":"L",	    "UUU":"F",
         }
 
 START_CODON = "AUG"
@@ -64,7 +72,6 @@ NC_INFO = {
     "RNA_COMPLEMENT": {"A":"T", "C":"G", "G":"C", "U":"A",}
     }
 
-
 ################################# Peptide Info ##################################
 # Author(s): Kyte J., Doolittle R.F.
 # Reference: J. Mol. Biol. 157:105-132(1982).
@@ -74,8 +81,10 @@ HYDROPATHY = {
                 "M": 1.9,   "N": -3.5,  "P": -1.6,  "Q": -3.5,  "R": -4.5,
                 "S": -0.8,  "T": -0.7,  "V": 4.2,   "W": -0.9,  "Y": -1.3, 
                 }
-# value from "EMBOSS"
-pK = {
-        "K":10.8,   "R":12.5,  "H":6.5,  "D":3.9,  "E":4.1,
-        "C":8.5,    "Y":10.1,   "N_term":8.6,   "C_term": 3.6,
+# referece biopython.SeqUtils.IsoelectricPoint
+# data from EMBOSS
+PK = {
+    "Nterm": 8.6, "Cterm": 3.6,
+    "pos_pK": {"K": 10.8, "R": 12.5, "H": 6.5},
+    "neg_pK": {"D": 3.9, "E": 4.1, "C": 8.5, "Y": 10.1},
     }

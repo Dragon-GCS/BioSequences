@@ -2,6 +2,7 @@
 ---
 
 用于分析核酸与肽段序列
+python >= 3.8.2
 
 ---
 ## Todo 20200901
@@ -31,14 +32,15 @@
 - [ ] RNA.getOrf(multi=False, replace=False) multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列
 - [ ] RNA.transcript(filter) filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。
 
-- [ ] RNA._print() 改为5'-Seq-3'
+- [x] RNA._print() 改为5'-Seq-3'
 
 ### DNA
-- [ ] DNA.translate() 返回翻译后的RNA对象
-- [ ] DNA.transcript(filter) 翻译后进行转录
+- [x] DNA.translate() 返回翻译后的RNA对象
+- [x] DNA.transcript(filter) 翻译后进行转录
 
 ### Peptide
-- [ ] Peptide.pl 计算肽链的等电点，第一次计算后保存在_pl中
+- [x] @property Peptide.pl 计算肽链的等电点，第一次计算后保存在_pl中
+- [x] Peptide.chargeInpH(pH) 计算肽链在特定pH的带电量
 - [x] Peptide.getHphob(window_size, show_img) 计算肽链的亲疏水性，第一次计算后保存在_Hphob_lsit中
     info from [expasy](https://web.expasy.org/protscale/)
 
@@ -47,7 +49,6 @@
 - [x] `config.setAlignPara(match, mismatch, gap_open, gap_extend)`: 修改比对参数
 
 ### biosequence.utils
-- [ ] biosequence.utils.calculatePL（peptide）： 计算等电点
 - [x] biosequence.align.alignment(query, subject, mode=1, boost=True, return_score=False)
 - [ ] biosequence.utils.parseFile(filename, type)：读取常见文件格式并返回对应的序列对象
 - [x] biosequence.align.printAlign(seq1, seq2, spacing=10, line_length=30, show_sequence=True)：在命令行中打印两个比对序列并显示差异。config.SYMBOL中可修改符号

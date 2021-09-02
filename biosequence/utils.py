@@ -1,4 +1,4 @@
-from typing import Tuple, Union, List
+from typing import Union 
 from biosequence.sequence import Sequence
 from biosequence.config import SYMBOL
 
@@ -44,10 +44,12 @@ def printAlign(sequence1: Union[str, Sequence], sequence2:Union[str, Sequence],s
     format_seq1 = ""
     format_seq2 = ""
     length = len(sequence1) if len(sequence1) < len(sequence2) else len(sequence2)
-    match_symbol, mismathc_symbol, gap_symbol = SYMBOL["printAlign"].values()
+    match_symbol, mismathc_symbol, gap_symbol = SYMBOL["printAlign"]
 
     for i in range(0, length):
-        if (base1 := sequence1[i]) == (base2 := sequence2[i]):
+        base1 = sequence1[i]
+        base2 = sequence2[i]
+        if base1 == base2:
             symbol_line += match_symbol
         elif base1 == "-" or  base2 == "-":
             symbol_line += gap_symbol

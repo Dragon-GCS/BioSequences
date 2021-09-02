@@ -4,14 +4,31 @@ import re
 from collections import Counter
 from typing import Tuple, Union, List
 from abc import ABC, abstractmethod
-from matplotlib import pyplot as plt
 
 from biosequence.align import alignment
-from biosequence import config
+from biosequence.config import HYDROPATHY, MW, PK
 
 class Sequence(ABC):
     def __init__(self, seq: str = "") -> None:
         self._seq = seq.upper()
+
+    @property
+    def composition(self) -> dict:
+        """
+        Analysis the composition of sequence
+        Returns:
+            composition: Dict of each element's appearance's times
+        """
+        if not hasattr(self, "_composition"):
+            self._composition = {}
+            counter = dict(Counter(self._seq))
+            for key in sorted(counter):
+                self._composition[key] = counter[key]
+        return self._composition
+    
+    @property
+    def length(self) -> int:
+        return len(self._seq)
 
     @property
     def seq(self) -> str:
@@ -21,10 +38,6 @@ class Sequence(ABC):
         return self._seq
 
     @property
-    def length(self) -> int:
-        return len(self._seq)
-
-    @property
     def weight(self) -> float:
         """
         Calculate the molecular Weight
@@ -32,7 +45,7 @@ class Sequence(ABC):
             weight: Sequence's Mole Weight in Daltons
         """
         if not hasattr(self, "_weight"):
-            weight_table = config.MW[self.__class__.__name__ + "_MW"]
+            weight_table = MW[self.__class__.__name__ + "_MW"]
             self._weight = round(sum([weight_table[e] for e in self._seq], 18),2)
         return self._weight
 
@@ -55,17 +68,6 @@ class Sequence(ABC):
             raise TypeError(f"Only str or {self.__class__.__name__} can be aligned to {self.__class__.__name__}")
 
         return alignment(self._seq, subject, mode, return_score)
-
-    def analysis(self) -> dict:
-        """
-        Analysis the composition of sequence
-        Returns:
-            composition: Dict of each element's appearance's times
-        """
-        if not hasattr(self, "_composition"):
-            for key in sorted(counter:=dict(Counter(self._seq))):
-                self._composition[key] = counter[key]
-        return self._composition
 
     def find(self, target:str) -> List[int]:
         """
@@ -105,18 +107,12 @@ class Sequence(ABC):
         """
         Output sequence info
         """
-        ...
-
-    def __str__(self) -> str:
-        return self._print()
-
-    def __repr__(self) -> str:
-        return self._print()
+        if self.length < 50:
+            return self._seq
+        else:
+            return f"{self._seq[:10]}...{self._seq[-10:]}"
 
     def __add__(self, s: Union[str, "Sequence"]) -> "Sequence":
-        """
-        Add a new sequence to the end and return a new Sequence
-        """
         if isinstance(s, str):
             return self.__class__(self._seq + s)
         elif isinstance(s, self.__class__):
@@ -125,9 +121,6 @@ class Sequence(ABC):
             raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
 
     def __radd__(self, s: Union[str, "Sequence"]) -> "Sequence":
-        """
-        Add a new sequence to the start and return a new Sequence
-        """
         if isinstance(s, str):
             return self.__class__(s + self._seq)
         elif isinstance(s, self.__class__):
@@ -135,14 +128,58 @@ class Sequence(ABC):
         else:
             raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
 
+    def __getitem__(self, index):
+        return self._seq[index]
+
+    def __str__(self) -> str:
+        return self._print()
+
+    def __repr__(self) -> str:
+        return self._print()
+    
+    
 
 class Peptide(Sequence):
     @property
     def pI(self):
+        """
+        Calculate the peptide's pI which is a pH make peptide's charge equal zero 
+        """
         if not hasattr(self, "_pl"):
-            pass
-    
+            min = 0.
+            max = 14.
+            pH = (min + max) / 2
+            charge = self.chargeInpH(pH)
+            while abs(charge) > 1e-8:
+                if charge > 0:
+                    min = pH
+                else:
+                    max = pH
+                pH = (min + max) / 2
+                charge = self.chargeInpH(pH)
+            self._pl = round(pH, 3)
+        return self._pl
 
+    def chargeInpH(self, pH:float) -> float:
+        """
+        Calculate the charge amount of peptide at pH
+        #   Henderson Hasselbalch equation: pH = pKa + log([A-]/[HA])
+        #   Rearranging: [HA]/[A-] = 10 ** (pKa - pH)
+        #   partial_charge =
+        #       [A-]/[A]total = [A-]/([A-] + [HA]) = 1 / { ([A-] + [HA])/[A-] } =
+        #       1 / (1 + [HA]/[A-]) = 1 / (1 + 10 ** (pKa - pH)) for acidic residues;
+        #                             1 / (1 + 10 ** (pH - pKa)) for basic residues
+        """
+        pos_charge = 1.0 / (10 ** (pH - PK["Nterm"]) + 1.0)
+        for pos_aa, aa_pK in PK["pos_pK"].items():
+            pos_charge += self.composition.get(pos_aa, 0) / (10 ** (pH - aa_pK) + 1.0)
+
+        neg_charge = 1.0 / (10 ** (PK["Cterm"] - pH) + 1.0)
+        for neg_aa, aa_pK in PK["neg_pK"].items():
+            neg_charge += self.composition.get(neg_aa, 0) / (10 ** (aa_pK - pH) + 1.0)
+
+        return pos_charge - neg_charge
+    
     def getHphob(self, window_size: int = 9, show_img: bool = True):
         """
         Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
@@ -155,13 +192,15 @@ class Peptide(Sequence):
             Hphob_list: the result of peptide's Hydropathy Score
         """
         if not hasattr(self, "_Hphob_lsit"):
-            _Hphob = [config.HYDROPATHY[aa] for aa in self._seq]
+            _Hphob = [HYDROPATHY[aa] for aa in self._seq]
             half_part = window_size // 2
             self._Hphob_lsit = []
             for i in range(half_part, len(_Hphob) - half_part):
                 self._Hphob_lsit.append(round(sum(_Hphob[i - half_part: i + window_size - half_part]) / window_size, 3))
             
         if show_img:
+            from matplotlib import pyplot as plt
+
             plt.title(f"Hydropathy Score for {self._seq[:4]}...{self._seq[-4:]}")
             plt.plot(range(window_size // 2 + 1, self.length - window_size // 2 + 1), self._Hphob_lsit, linewidth=0.8)
             plt.xlim((1, self.length + 1))
@@ -173,7 +212,7 @@ class Peptide(Sequence):
         return self._Hphob_lsit
     
     def _print(self) -> str:
-        return f"N'-{self._seq}-C'"
+        return f"N'-{super()._print()}-C'"
 
 
 class RNA(Sequence):
@@ -212,14 +251,13 @@ class RNA(Sequence):
             pass
     
     def _print(self):
-        return f"5'-{self._seq}-3'"
+        return f"5'-{super()._print()}-3'"
 
 
 class DNA(RNA):
     def translate(self):
         if not hasattr(self, "_translate"):
             self._translate = RNA(self._seq.replace("T", "U"))
-            
         return self._translate
 
     def transcript(self, filter=True):
