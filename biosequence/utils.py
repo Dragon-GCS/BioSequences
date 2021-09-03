@@ -1,6 +1,7 @@
-from typing import Union 
-from biosequence.sequence import Sequence
-from biosequence.config import SYMBOL
+import json
+from pathlib import Path
+
+from biosequence import config
 
 def read_fasta(filename):
     """
@@ -17,7 +18,6 @@ def read_fasta(filename):
 
     with open(filename) as f:
         for line in f.readlines():
-            
             if line.startswith(">"):
                 seq_ids.append(line[1:].strip())
 
@@ -25,14 +25,13 @@ def read_fasta(filename):
                     seq_list.append(seq)
                     seq = ""
                 continue
-
             seq += line.strip()
-
         seq_list.append(seq)
 
     return seq_list, seq_ids 
 
-def printAlign(sequence1: Union[str, Sequence], sequence2:Union[str, Sequence],spacing:int = 10, line_width:int = 30, show_sequence:bool = True) -> None:
+
+def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_sequence = True):
     """
     Print two sequence by a pretty format
     Args:
@@ -44,7 +43,7 @@ def printAlign(sequence1: Union[str, Sequence], sequence2:Union[str, Sequence],s
     format_seq1 = ""
     format_seq2 = ""
     length = len(sequence1) if len(sequence1) < len(sequence2) else len(sequence2)
-    match_symbol, mismathc_symbol, gap_symbol = SYMBOL["printAlign"]
+    match_symbol, mismathc_symbol, gap_symbol = config.SYMBOL["printAlign"]
 
     for i in range(0, length):
         base1 = sequence1[i]
@@ -86,3 +85,17 @@ def printAlign(sequence1: Union[str, Sequence], sequence2:Union[str, Sequence],s
             print(symbol_line[start : end])
         
         print()
+
+
+def setAlignPara(match=2, mismatch=-3, gap_open=-3, gap_extend=-3):
+    config.AlignmentConfig.MATCH = match
+    config.AlignmentConfig.MISMATCH = mismatch
+    config.AlignmentConfig.GAP_OPEN = gap_open
+    config.AlignmentConfig.GAP_EXTEND = gap_extend
+
+
+def setStartCoden(coden):
+    if isinstance(coden, str):
+        config.START_CODON = [coden]
+    if isinstance(coden, list):
+        config.START_CODON = coden

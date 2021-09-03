@@ -2,18 +2,18 @@
 import re
 
 from collections import Counter
-from typing import Tuple, Union, List
 from abc import ABC, abstractmethod
 
 from biosequence.align import alignment
-from biosequence.config import HYDROPATHY, MW, PK, NC_INFO
+from biosequence import config
+from biosequence.config import HYDROPATHY, MW, PK, NC_INFO, SYMBOL
 
 class Sequence(ABC):
-    def __init__(self, seq: str = "") -> None:
+    def __init__(self, seq = ""):
         self._seq = seq.upper()
 
     @property
-    def composition(self) -> dict:
+    def composition(self):
         """
         Analysis the composition of sequence
         Returns:
@@ -27,18 +27,18 @@ class Sequence(ABC):
         return self._composition
     
     @property
-    def length(self) -> int:
+    def length(self):
         return len(self._seq)
 
     @property
-    def seq(self) -> str:
+    def seq(self):
         """
         Seq can only be modified by mutation
         """
         return self._seq
 
     @property
-    def weight(self) -> float:
+    def weight(self):
         """
         Calculate the molecular Weight
         Returns:
@@ -49,7 +49,7 @@ class Sequence(ABC):
             self._weight = round(sum([weight_table[e] for e in self._seq], 18),2)
         return self._weight
 
-    def align(self, subject: Union[str, "Sequence"], mode: int = 1, return_score: bool = False) -> Tuple[str, str, None] :
+    def align(self, subject, mode = 1, return_score = False):
         """
         Align two sequence
         Args:
@@ -69,7 +69,7 @@ class Sequence(ABC):
 
         return alignment(self._seq, subject, mode, return_score)
 
-    def find(self, target:str) -> List[int]:
+    def find(self, target):
         """
         Find the target sequence in sequence and return the position
         Returns:
@@ -77,7 +77,7 @@ class Sequence(ABC):
         """
         return [i.start() for i in re.finditer(target, self._seq)]
 
-    def mutation(self, position: Union[int, List[int], str], target: str) -> str:
+    def mutation(self, position, target):
         """
         Modify the seqence
         Args:
@@ -103,13 +103,13 @@ class Sequence(ABC):
         return self._seq
 
     @abstractmethod
-    def _print(self) -> str:
+    def _print(self):
         """
         Output sequence info
         """
         return self._seq
 
-    def __add__(self, s: Union[str, "Sequence"]) -> "Sequence":
+    def __add__(self, s):
         if isinstance(s, str):
             return self.__class__(self._seq + s)
         elif isinstance(s, self.__class__):
@@ -117,25 +117,35 @@ class Sequence(ABC):
         else:
             raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
 
-    def __radd__(self, s: Union[str, "Sequence"]) -> "Sequence":
+    def __radd__(self, s):
         if isinstance(s, str):
             return self.__class__(s + self._seq)
         elif isinstance(s, self.__class__):
             return self.__class__(s._seq + self._seq)
         else:
-            raise TypeError(f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
+            raise TypeError(f"Only str or {self.__class__.__name__} can add {self.__class__.__name__}")
 
+    def __eq__(self, o):
+        if isinstance(o, str):
+            return self._seq == o
+        elif isinstance(o, self.__class__):
+            return self._seq == o._seq
+        else:
+            raise TypeError(f"Only str or {self.__class__.__name__} can compare to {self.__class__.__name__}")
+    
     def __getitem__(self, index):
         return self._seq[index]
 
-    def __str__(self) -> str:
+    def __len__(self):
+        return len(self._seq)
+
+    def __str__(self):
         return self._print()
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self._print()
     
     
-
 class Peptide(Sequence):
     @property
     def pI(self):
@@ -157,15 +167,15 @@ class Peptide(Sequence):
             self._pl = round(pH, 3)
         return self._pl
 
-    def chargeInpH(self, pH:float) -> float:
+    def chargeInpH(self, pH):
         """
         Calculate the charge amount of peptide at pH
-        #   Henderson Hasselbalch equation: pH = pKa + log([A-]/[HA])
-        #   Rearranging: [HA]/[A-] = 10 ** (pKa - pH)
-        #   partial_charge =
-        #       [A-]/[A]total = [A-]/([A-] + [HA]) = 1 / { ([A-] + [HA])/[A-] } =
-        #       1 / (1 + [HA]/[A-]) = 1 / (1 + 10 ** (pKa - pH)) for acidic residues;
-        #                             1 / (1 + 10 ** (pH - pKa)) for basic residues
+        Henderson Hasselbalch equation: pH = pKa + log([A-]/[HA])
+        Rearranging: [HA]/[A-] = 10 ** (pKa - pH)
+        partial_charge =
+            [A-]/[A]total = [A-]/([A-] + [HA]) = 1 / { ([A-] + [HA])/[A-] } =
+            1 / (1 + [HA]/[A-]) = 1 / (1 + 10 ** (pKa - pH)) for acidic residues;
+                                  1 / (1 + 10 ** (pH - pKa)) for basic residues
         """
         pos_charge = 1.0 / (10 ** (pH - PK["Nterm"]) + 1.0)
         for pos_aa, aa_pK in PK["pos_pK"].items():
@@ -177,7 +187,7 @@ class Peptide(Sequence):
 
         return pos_charge - neg_charge
     
-    def getHphob(self, window_size: int = 9, show_img: bool = True):
+    def getHphob(self, window_size, show_img = True):
         """
         Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
         Each aa's score is the average score of all aa in window_size.
@@ -208,7 +218,7 @@ class Peptide(Sequence):
 
         return self._Hphob_lsit
     
-    def _print(self) -> str:
+    def _print(self):
         return f"N'-{super()._print()}-C'"
 
 
@@ -251,19 +261,58 @@ class RNA(Sequence):
         """
         self._seq = self.reversed._seq
 
-
     def getOrf(self, multi=False, replace=False):
-        "multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列"
-        if not hasattr(self, "orf"):
-            pass
+        """
+        Find the Open Reading Frame in sequence and save in self.orf
+        Args:
+            multi:      Return all Orf if true else only the longest
+            replace:    Replace origin sequence with the longest Orf
+        Returns:
+            Orf:        Sequence's Orf got by search
+        """
+        self.orf = []
+        # Traverse all Orf Frame
+        for i in range(self.length - 5):
+            if self._seq[i:i+3] in config.START_CODON:
+                # when start coden exits, from end start finding end coden
+                end = i + (self.length - i) // 3 * 3
+                for j in range(end, i + 5, -3):
+                    if config.TABLE.get(self._seq[j - 3: j]) == "*":
+                        orf = self._seq[i:j]
+                        self.orf.append(orf)
+
+                        if not multi:
+                            if replace:
+                                self._seq = orf
+                            return self.orf  # Stop search if only request longest orf
+        
+        return self.orf
         
     def transcript(self, filter):
-        "filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。"
-        if not hasattr(self, "peptide"):
-            pass
-    
+        """
+        Transcript the sequence to peptide, the result will save in self.peptide
+        Args:
+            filter:  Return all product or the longest
+        Returns:
+            peptide: List of transcript product
+        """
+        orf = self.getOrf(multi = not filter) if not hasattr(self, "orf") else self.orf
+        self.peptide = []
+        peptide = Peptide()
+        for frame in orf:
+            for i in range(0, len(frame), 3):
+                peptide += config.TABLE.get(frame[i:i+3], SYMBOL["printAlign"][1])
+            self.peptide.append(peptide[:-1])
+
+            if filter:
+                return self.peptide
+
+        return self.peptide
+
     def _print(self):
-        return f"5'-{super()._print()}-3'"
+        if self._seq:
+            return f"5'-{super()._print()}-3'"
+        return ""
 
 
 class DNA(RNA):

@@ -1,42 +1,57 @@
-test_dna = 'AGCCATGTAGCTAACTCAGGTTACATGGGGATGACCCCGCGACTTGGATTAGAGTCTCTTTTGGAATAAGCCTGAATGATCCGAGTAGCATCTCAG'
+class TestSeq:
+    name = "Homo sapiens actin beta (ACTB), mRNA"
+    ID = "NM_001101.5"
+    DNA =  "atggatgatgatatcgccgcgctcgtcgtcgacaacggctccggcatgtgcaaggccggcttcgcgggcg" \
+           "acgatgccccccgggccgtcttcccctccatcgtggggcgccccaggcaccagggcgtgatggtgggcat" \
+           "gggtcagaaggattcctatgtgggcgacgaggcccagagcaagagaggcatcctcaccctgaagtacccc" \
+           "atcgagcacggcatcgtcaccaactgggacgacatggagaaaatctggcaccacaccttctacaatgagc" \
+           "tgcgtgtggctcccgaggagcaccccgtgctgctgaccgaggcccccctgaaccccaaggccaaccgcga" \
+           "gaagatgacccagatcatgtttgagaccttcaacaccccagccatgtacgttgctatccaggctgtgcta" \
+           "tccctgtacgcctctggccgtaccactggcatcgtgatggactccggtgacggggtcacccacactgtgc" \
+           "ccatctacgaggggtatgccctcccccatgccatcctgcgtctggacctggctggccgggacctgactga" \
+           "ctacctcatgaagatcctcaccgagcgcggctacagcttcaccaccacggccgagcgggaaatcgtgcgt" \
+           "gacattaaggagaagctgtgctacgtcgccctggacttcgagcaagagatggccacggctgcttccagct" \
+           "cctccctggagaagagctacgagctgcctgacggccaggtcatcaccattggcaatgagcggttccgctg" \
+           "ccctgaggcactcttccagccttccttcctgggcatggagtcctgtggcatccacgaaactaccttcaac" \
+           "tccatcatgaagtgtgacgtggacatccgcaaagacctgtacgccaacacagtgctgtctggcggcacca" \
+           "ccatgtaccctggcattgccgacaggatgcagaaggagatcactgccctggcacccagcacaatgaagat" \
+           "caagatcattgctcctcctgagcgcaagtactccgtgtggatcggcggctccatcctggcctcgctgtcc" \
+           "accttccagcagatgtggatcagcaagcaggagtatgacgagtccggcccctccatcgtccaccgcaaat" \
+           "gcttctag"
+    Peptide = "MDDDIAALVVDNGSGMCKAGFAGDDAPRAVFPSIVGRPRHQGVMVGMGQKDSYVGDEAQSKRGILTL" \
+           "KYPIEHGIVTNWDDMEKIWHHTFYNELRVAPEEHPVLLTEAPLNPKANREKMTQIMFETFNTPAMYVAIQ" \
+           "AVLSLYASGRTTGIVMDSGDGVTHTVPIYEGYALPHAILRLDLAGRDLTDYLMKILTERGYSFTTTAERE" \
+           "IVRDIKEKLCYVALDFEQEMATAASSSSLEKSYELPDGQVITIGNERFRCPEALFQPSFLGMESCGIHET" \
+           "TFNSIMKCDVDIRKDLYANTVLSGGTTMYPGIADRMQKEITALAPSTMKIKIIAPPERKYSVWIGGSILA" \
+           "SLSTFQQMWISKQEYDESGPSIVHRKCF"
 
-################################## About utils ##################################
+############################### Abot utils ##################################
 
 SYMBOL = {
-    "printAlign": ("┃", "•", "━") # replace "· - |" or other fixed width character
+    "printAlign": ("┃", "•", "━") # replace "| · -" or other fixed width character
 }
 
 ################################## Coden Table ##################################
 TABLE = {
-        "AAA":"K",	    "AAC":"N",	    "AAG":"K",	    "AAU":"N",	
-        "ACA":"T",	    "ACC":"T",	    "ACG":"T",	    "ACU":"T",	
-        "AGA":"R",	    "AGC":"S",	    "AGG":"R",	    "AGU":"S",	
-        "AUA":"I",	    "AUC":"I",	    "AUG":"M",	    "AUU":"I",	
-        "CAA":"Q",	    "CAC":"H",	    "CAG":"Q",	    "CAU":"H",	
-        "CCA":"P",	    "CCC":"P",	    "CCG":"P",	    "CCU":"P",	
-        "CGA":"R",	    "CGC":"R",	    "CGG":"R",	    "CGU":"R",	
-        "CUA":"L",	    "CUC":"L",	    "CUG":"L",	    "CUU":"L",	
-        "GAA":"E",	    "GAC":"D",	    "GAG":"E",	    "GAU":"D",	
-        "GCA":"A",	    "GCC":"A",	    "GCG":"A",	    "GCU":"A",	
-        "GGA":"G",	    "GGC":"G",	    "GGG":"G",	    "GGU":"G",	
-        "GUA":"V",	    "GUC":"V",	    "GUG":"V",	    "GUU":"V",	
-        "UAA":"Stop",	"UAC":"Y",	    "UAG":"Stop",	"UAU":"Y",	
-        "UCA":"S",	    "UCC":"S",	    "UCG":"S",  	"UCU":"S",	
-        "UGA":"Stop",	"UGC":"C",	    "UGG":"W",	    "UGU":"C",	
-        "UUA":"L",	    "UUC":"F",	    "UUG":"L",	    "UUU":"F",
+        "AAA":"K",  "AAC":"N",  "AAG":"K",  "AAU":"N",	
+        "ACA":"T",  "ACC":"T",  "ACG":"T",  "ACU":"T",	
+        "AGA":"R",  "AGC":"S",  "AGG":"R",  "AGU":"S",	
+        "AUA":"I",  "AUC":"I",  "AUG":"M",  "AUU":"I",	
+        "CAA":"Q",  "CAC":"H",  "CAG":"Q",  "CAU":"H",	
+        "CCA":"P",  "CCC":"P",  "CCG":"P",  "CCU":"P",	
+        "CGA":"R",  "CGC":"R",  "CGG":"R",  "CGU":"R",	
+        "CUA":"L",  "CUC":"L",  "CUG":"L",  "CUU":"L",	
+        "GAA":"E",  "GAC":"D",  "GAG":"E",  "GAU":"D",	
+        "GCA":"A",  "GCC":"A",  "GCG":"A",  "GCU":"A",	
+        "GGA":"G",  "GGC":"G",  "GGG":"G",  "GGU":"G",	
+        "GUA":"V",  "GUC":"V",  "GUG":"V",  "GUU":"V",	
+        "UAA":"*",  "UAC":"Y",  "UAG":"*",  "UAU":"Y",	
+        "UCA":"S",  "UCC":"S",  "UCG":"S",  "UCU":"S",	
+        "UGA":"*",  "UGC":"C",  "UGG":"W",  "UGU":"C",	
+        "UUA":"L",  "UUC":"F",  "UUG":"L",  "UUU":"F"
         }
 
-START_CODON = "AUG"
-
-def setTable(json_file):
-    import json
-    from pathlib import Path
-
-    global TABLE
-
-    filename = Path(__file__).resolve().parent.joinpath("coden_table", json_file)
-    with open(filename) as f:
-        TABLE = json.load(f)
+START_CODON = ["AUG"]
 
 ################################ Align Paremeter ################################
 class AlignmentConfig:
@@ -44,12 +59,6 @@ class AlignmentConfig:
     MISMATCH = -3
     GAP_OPEN = -3
     GAP_EXTEND = -3
-
-def setAlignPara(match=2, mismatch=-3, gap_open=-3, gap_extend=-3):
-    AlignmentConfig.MATCH = match
-    AlignmentConfig.MISMATCH = mismatch
-    AlignmentConfig.GAP_OPEN = gap_open
-    AlignmentConfig.GAP_EXTEND = gap_extend
 
 ############################### Molecular Weight ################################
 # All molecular weight were subtracted a H2O（18.0）

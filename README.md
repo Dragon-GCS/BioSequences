@@ -1,11 +1,11 @@
-# biosequence
+# Biosequence
 ---
 
 用于分析核酸与肽段序列
-python >= 3.8.2
+python >= 3.7
 
 ---
-## Todo 20200901
+## Todo 20200903
 ### Sequence
 - [x] Sequence.\__init\__(seq)
 - [x] @property Sequence.seq()
@@ -25,12 +25,12 @@ python >= 3.8.2
 - [x] @property RNA.revered 返回其反向序列
 - [x] @property RNA.complemented 返回其互补序列
 - [x] @property RNA.GC 返回序列中GC含量,计算后保存在_GC中
-- [ ] RNA.orf 序列中的开放读码框，需要先经过get_orf()计算才有此属性
-- [ ] RNA.peptide 序列翻译产物，需要先经过tanscript()计算才有此属性
+- [x] RNA.orf 序列中的开放读码框，需要先经过getOrf()计算才有此属性
+- [x] RNA.peptide 序列翻译产物，需要先经过tanscript()计算才有此属性
 - [x] RNA.reverse() 将序列变为其反向序列
 - [x] RNA.complement() 将序列变为其互补序列
-- [ ] RNA.getOrf(multi=False, replace=False) multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列
-- [ ] RNA.transcript(filter) filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。
+- [x] RNA.getOrf(multi=False, replace=False) multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列
+- [x] RNA.transcript(filter) filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。
 
 - [x] RNA._print() 改为5'-Seq-3'
 
@@ -143,12 +143,6 @@ python >= 3.8.2
     info from [expasy](https://web.expasy.org/protscale/)
 
 ### biosequence.config
-
-#### config.setTable(filename)
-    序列翻译前加入此代码，可以使用自定义密码子进行翻译
-
-* filename(str)
-    保存在`conden_table`文件夹中以`json`格式保存的密码子表
 
 #### setAlignPara(match, mismatch, gap_open, gap_extend)
     序列比对前加入此代码，可以修改比对评分
