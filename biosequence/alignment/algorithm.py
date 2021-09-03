@@ -31,7 +31,7 @@ def cAlgorithm(func):
             suffix = ".dll"
             print("Can't detect system, using .dll to boost Alignment")
 
-        dll_path = os.path.join(os.path.dirname(__file__), "algorithm" + suffix)
+        dll_path = os.path.join(os.path.dirname(__file__), "algorithmA" + suffix)
 
         cAlign =func(dll_path)
         cAlign(query, subject, aligned_query, aligned_subject, pointer(score), match, mismatch, gap_open, gap_extend)
