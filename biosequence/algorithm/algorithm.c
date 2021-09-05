@@ -1,37 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "algorithm.h"
 #define GAP_CHAR '-';
-
-/* Unit in Score Matrix */
-typedef struct {
-    int up;         /* whether go up node when back-tracking */
-    int left;       /* whether go left node when back-tracking */
-    int upLeft;     /* whether go up-left node when back-tracking */
-    float score;    /* node's final score */
-    float uScore;   /* score if route from up node */
-    float lScore;   /* score if route from left node */
-    float mScore;   /* score if route from up-left node */
-}matrixNode, *mNode;
-
-mNode** initMatrix(int row_length, int column_length);
-float max3(float a, float b, float c);
-void backTracking(mNode node, int* current_i, int* current_j, char query_base, char subject_base, char* align_query, char* align_subject, int index);
-void reverseStr(char* str);
-void release(mNode** matrix, int rows, int columns);
-
-void NeedlemanWunsch(char* query, char* subject, 
-                     char* aligned_query, char* aligned_subject,
-                     float* score,  
-                     float match, float mismatch, 
-                     float gap_open, float gap_extend);
-
-void SmithWaterman(char* query, char* subject, 
-                   char* aligned_query, char* aligned_subject, 
-                   float* score,  
-                   float match, float mismatch, 
-                   float gap_open, float gap_extend);
-
 
 mNode** initMatrix(int row_length, int column_length)
 {   /*
@@ -183,7 +154,6 @@ void NeedlemanWunsch(char* query, char* subject,
      */
     float match_score;
     int i = 0, j = 0, index = 0;
-
     int rows = strlen(query);
     int columns = strlen(subject);
     
@@ -226,17 +196,36 @@ void NeedlemanWunsch(char* query, char* subject,
                                               score_matrix[i][j - 1]->lScore + gap_extend);
 
             match_score = query[i-1] == subject[j-1] ? match : mismatch;
-            score_matrix[i][j]->mScore = max3(score_matrix[i - 1][j - 1]->uScore + match_score,
-                                              score_matrix[i - 1][j - 1]->lScore + match_score,
-                                              score_matrix[i - 1][j - 1]->mScore + match_score);
+            score_matrix[i][j]->mScore = score_matrix[i - 1][j - 1]->score + match_score;
             
 
             score_matrix[i][j]->score = max3(score_matrix[i][j]->uScore, 
                                              score_matrix[i][j]->lScore, 
                                              score_matrix[i][j]->mScore);
 
-            if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) score_matrix[i][j]->up = 1;
-            if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) score_matrix[i][j]->left = 1;
+            if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) 
+            {
+                score_matrix[i][j]->up = 1;
+                if (i > 1)
+                {
+                if ((score_matrix[i][j]->score == score_matrix[i - 1][j]->uScore + gap_extend) & (score_matrix[i - 1][j] ->score == score_matrix[i - 1][j]->uScore))
+                    {score_matrix[i - 1][j]->up=0; score_matrix[i - 1][j]->upLeft = 0; score_matrix[i - 1][j]->up = 1;}
+                if ((score_matrix[i][j]->score == score_matrix[i - 1][j]->mScore + gap_open) & (score_matrix[i - 1][j] ->score == score_matrix[i - 1][j]->mScore))
+                    {score_matrix[i - 1][j]->up=0; score_matrix[i - 1][j]->upLeft = 1; score_matrix[i - 1][j]->up = 0;}
+                } 
+            }
+            if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) 
+            {
+                score_matrix[i][j]->left = 1;
+                if (i > 1)
+                {
+                if ((score_matrix[i][j]->score == score_matrix[i][j - 1]->lScore + gap_extend) & (score_matrix[i][j - 1] ->score == score_matrix[i][j - 1]->lScore))
+                    {score_matrix[i][j-1]->left = 1; score_matrix[i][j-1]->upLeft = 0; score_matrix[i][j-1]->up = 0;}
+                if ((score_matrix[i][j]->score == score_matrix[i][j - 1]->mScore + gap_open) & (score_matrix[i][j - 1] ->score == score_matrix[i][j - 1]->mScore))
+                    {score_matrix[i][j-1]->left = 0; score_matrix[i][j-1]->upLeft = 1; score_matrix[i][j-1]->up = 0;}
+                }
+                
+            }
             if (score_matrix[i][j]->mScore == score_matrix[i][j]->score) score_matrix[i][j]->upLeft = 1;
         }
     }
@@ -282,7 +271,6 @@ void SmithWaterman(char* query, char* subject,
      */
     float match_score;
     int i = 0, j = 0, index = 0;
-    float up_score, upLeft_score, left_score;
     int max_i = 0, max_j = 0;
     *score = 0;
 
@@ -306,10 +294,7 @@ void SmithWaterman(char* query, char* subject,
                                               0);
 
             match_score = query[i-1] == subject[j-1] ? match : mismatch;
-            score_matrix[i][j]->mScore = max2(0, max3(
-                                              score_matrix[i - 1][j - 1]->uScore + match_score,
-                                              score_matrix[i - 1][j - 1]->lScore + match_score,
-                                              score_matrix[i - 1][j - 1]->mScore + match_score));
+            score_matrix[i][j]->mScore = max2(0, score_matrix[i - 1][j - 1]->score + match_score);
             
 
             score_matrix[i][j]->score = max3(score_matrix[i][j]->uScore, 
@@ -317,9 +302,30 @@ void SmithWaterman(char* query, char* subject,
                                              score_matrix[i][j]->mScore);
 
             if( score_matrix[i][j]->score != 0)
-            {
-                if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) score_matrix[i][j]->up = 1;
-                if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) score_matrix[i][j]->left = 1;
+            {      
+                if (score_matrix[i][j]->uScore == score_matrix[i][j]->score) 
+                {
+                    score_matrix[i][j]->up = 1;
+                    if (i > 1)
+                    {
+                    if ((score_matrix[i][j]->score == score_matrix[i - 1][j]->uScore + gap_extend) & (score_matrix[i - 1][j] ->score == score_matrix[i - 1][j]->uScore))
+                        {score_matrix[i - 1][j]->up=0; score_matrix[i - 1][j]->upLeft = 0; score_matrix[i - 1][j]->up = 1;}
+                    if ((score_matrix[i][j]->score == score_matrix[i - 1][j]->mScore + gap_open) & (score_matrix[i - 1][j] ->score == score_matrix[i - 1][j]->mScore))
+                        {score_matrix[i - 1][j]->up=0; score_matrix[i - 1][j]->upLeft = 1; score_matrix[i - 1][j]->up = 0;}
+                    }
+                }
+                if (score_matrix[i][j]->lScore == score_matrix[i][j]->score) 
+                {
+                    score_matrix[i][j]->left = 1;
+                    if (i > 1)
+                    {
+                    if ((score_matrix[i][j]->score == score_matrix[i][j - 1]->lScore + gap_extend) & (score_matrix[i][j - 1] ->score == score_matrix[i][j - 1]->lScore))
+                        {score_matrix[i][j-1]->left = 1; score_matrix[i][j-1]->upLeft = 0; score_matrix[i][j-1]->up = 0;}
+                    if ((score_matrix[i][j]->score == score_matrix[i][j - 1]->mScore + gap_open) & (score_matrix[i][j - 1] ->score == score_matrix[i][j - 1]->mScore))
+                        {score_matrix[i][j-1]->left = 0; score_matrix[i][j-1]->upLeft = 1; score_matrix[i][j-1]->up = 0;}
+                    }
+                    
+                }      
                 if (score_matrix[i][j]->mScore == score_matrix[i][j]->score) score_matrix[i][j]->upLeft = 1;
                 
                 // Recode the max score and its positon
@@ -347,30 +353,4 @@ void SmithWaterman(char* query, char* subject,
     reverseStr(aligned_subject);
     
     release(score_matrix, rows, columns);
-}
-
-int main() {
-    char s[1000];
-    char r[1000];
-    char as[1000];
-    char ar[1000];
-    float score, match=5, mismatch=-4, gap_open=-10, gap_extend=-0.5;
-    printf("The 1st seq: ");
-    scanf("%s", s);
-    printf("The 2nd seq: ");
-    scanf("%s", r);
-    NeedlemanWunsch(s, r,as,ar, &score, match, mismatch, gap_open,gap_extend);
-
-    int i = 0;
-    while(as[i] != '\0')
-    {
-        printf("%c", as[i++]);
-    }
-    i = 0;
-    while(ar[i] != '\0')
-    {
-        printf("%c", ar[i++]);
-    }
-    return 0;
-
 }

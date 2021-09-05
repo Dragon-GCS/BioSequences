@@ -18,12 +18,16 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);
-    const char *align_query = malloc(size);
-    const char *align_subject = malloc(size);
+    char *align_query = malloc(size);
+    char *align_subject = malloc(size);
     float score;
     NeedlemanWunsch(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
-    PyObject *result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
+    PyObject *result;
+    if (return_score != 0) 
+       result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
+    else
+        result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));
     
     free(align_query);
     free(align_subject);
@@ -45,12 +49,16 @@ algorithm_SmithWaterman(PyObject *self, PyObject *args)
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);
-    const char *align_query = malloc(size);
-    const char *align_subject = malloc(size);
+    char *align_query = malloc(size);
+    char *align_subject = malloc(size);
     float score;
     SmithWaterman(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
-    PyObject *result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
+    PyObject *result;
+    if (return_score != 0) 
+       result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
+    else
+        result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));
 
     free(align_query);
     free(align_subject);

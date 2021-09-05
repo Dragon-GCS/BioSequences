@@ -1,7 +1,5 @@
-import json
-from pathlib import Path
+from biosequence.config import SYMBOL
 
-from biosequence import config
 
 def read_fasta(filename):
     """
@@ -31,21 +29,24 @@ def read_fasta(filename):
     return seq_list, seq_ids 
 
 
-def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_sequence = True):
+def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_seq = True):
     """
     Print two sequence by a pretty format
     Args:
-        sequence1
-        sequence2
-        line_width: the num of each line
+        sequence1:  Sequence1
+        sequence2:  Sequence2
+        spacing:    A space each $spacing char
+        line_width: the width of each line
+        show_seq:   if False, only print the alignment result
     """
     symbol_line = ""
     format_seq1 = ""
     format_seq2 = ""
+    count = 0
     length = len(sequence1) if len(sequence1) < len(sequence2) else len(sequence2)
-    match_symbol, mismathc_symbol, gap_symbol = config.SYMBOL["printAlign"]
+    match_symbol, mismatch_symbol, gap_symbol = SYMBOL["printAlign"]
 
-    for i in range(0, length):
+    for i in range(length):
         base1 = sequence1[i]
         base2 = sequence2[i]
         if base1 == base2:
@@ -53,16 +54,18 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_sequenc
         elif base1 == "-" or  base2 == "-":
             symbol_line += gap_symbol
         else:
-            symbol_line += mismathc_symbol
-
+            symbol_line += mismatch_symbol
 
         format_seq1 += base1
         format_seq2 += base2
+        count += 1
 
-        if (i + 1) % spacing == 0:
+        if count % spacing == 0:
             format_seq1 += " "
             format_seq2 += " "
             symbol_line += " "
+        if count % line_width == 0:
+            count = 0
 
     space_num = 0
     space_each_line = line_width // spacing
@@ -71,7 +74,7 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_sequenc
         start = i + space_num
         end = start + line_width + space_each_line
         space_num += space_each_line
-        if show_sequence:
+        if show_seq:
             print(f"{i + 1:>5}", end=" ")
             print(format_seq1[start : end])
         
@@ -85,17 +88,3 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_sequenc
             print(symbol_line[start : end])
         
         print()
-
-
-def setAlignPara(match=2, mismatch=-3, gap_open=-3, gap_extend=-3):
-    config.AlignmentConfig.MATCH = match
-    config.AlignmentConfig.MISMATCH = mismatch
-    config.AlignmentConfig.GAP_OPEN = gap_open
-    config.AlignmentConfig.GAP_EXTEND = gap_extend
-
-
-def setStartCoden(coden):
-    if isinstance(coden, str):
-        config.START_CODON = [coden]
-    if isinstance(coden, list):
-        config.START_CODON = coden

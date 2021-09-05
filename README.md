@@ -1,157 +1,247 @@
-# Biosequence
+# BioSequences
 ---
 
 用于分析核酸与肽段序列
-python >= 3.7
 
----
-## Todo 20200903
-### Sequence
-- [x] Sequence.\__init\__(seq)
-- [x] @property Sequence.seq()
-- [x] @property Sequence.length()
-- [x] @property Sequence.weight() 计算分子量
-- [x] Sequence.align(subject, mode=1, boost=True, return_score=False) 序列比对
-- [x] Sequence.analysis()  成分分析
-- [x] Sequence.find(target) 查找序列
-- [x] Sequence.mutation(position, target) 改变序列
-- [x] Sequence._print() 打印输出格式
-- [x] Sequence.\__str\__()
-- [x] Sequence.\__repr\__()
-- [x] Sequence.\__add\__()
-- [x] Sequence.\__radd\__()
+Window
+### 打包
 
-### RNA
-- [x] @property RNA.revered 返回其反向序列
-- [x] @property RNA.complemented 返回其互补序列
-- [x] @property RNA.GC 返回序列中GC含量,计算后保存在_GC中
-- [x] RNA.orf 序列中的开放读码框，需要先经过getOrf()计算才有此属性
-- [x] RNA.peptide 序列翻译产物，需要先经过tanscript()计算才有此属性
-- [x] RNA.reverse() 将序列变为其反向序列
-- [x] RNA.complement() 将序列变为其互补序列
-- [x] RNA.getOrf(multi=False, replace=False) multi是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf。 replace 当multi=False是生效，是否使用最长的orf替换原序列
-- [x] RNA.transcript(filter) filter是否仅返回最长的翻译产物。返回值为一个或多个Peptide对象。
+    pip install wheel
+    python setup.py sdist bdist_wheel
 
-- [x] RNA._print() 改为5'-Seq-3'
+* Windows: VC++ 14.0以上
 
-### DNA
-- [x] DNA.translate() 返回翻译后的RNA对象
-- [x] DNA.transcript(filter) 翻译后进行转录
+### 编译
 
-### Peptide
-- [x] @property Peptide.pl 计算肽链的等电点，第一次计算后保存在_pl中
-- [x] Peptide.chargeInpH(pH) 计算肽链在特定pH的带电量
-- [x] Peptide.getHphob(window_size, show_img) 计算肽链的亲疏水性，第一次计算后保存在_Hphob_lsit中
-    info from [expasy](https://web.expasy.org/protscale/)
+直接编译即后使用
 
-### config
-- [x] `config.setTable("conden.json")`: 使用保存在conden_table中的自定义密码子表（必须为json格式）
-- [x] `config.setAlignPara(match, mismatch, gap_open, gap_extend)`: 修改比对参数
+    python setup.py build_ext --inplace
+    rm ./build
 
-### biosequence.utils
-- [x] biosequence.align.alignment(query, subject, mode=1, boost=True, return_score=False)
-- [ ] biosequence.utils.parseFile(filename, type)：读取常见文件格式并返回对应的序列对象
-- [x] biosequence.align.printAlign(seq1, seq2, spacing=10, line_length=30, show_sequence=True)：在命令行中打印两个比对序列并显示差异。config.SYMBOL中可修改符号
+### pip安装
+
+    pip install biosequences
+
+
 ---
 
 # 主要功能
 ## biosequence.Sequence
 
-### biosequence.Sequence.Sequence
+### biosequence.Sequence.Sequence(seq="")
 
-生物序列的基类，RNA，DNA，Peptide都基于此类。
-序列对象可与序列对象或字符串相加，返回新的序列对象
+* RNA，DNA和Peptide都基于此抽象类，因此Sequence中的属性和方法为所有序列对象公有的属性和方法。
+* 相同的序列对象可以直接与同类对象或字符串进行拼接，比较。
+* 所有对象都不会对seq进行检查，所以构建对象时需要主要seq中不要出现不应该出现的字符，以免发生不必要的问题
+
+```python
+from biosequence.sequence import DNA, RNA
+
+d1 = DNA("ATCC")
+d2 = DNA("AC")
+r1 = Peptide("MATN")
+
+d1          # 5'-ATCC-3'
+r1          #  N-MATN-C
+d1 + d2	    # 5'-ATCCAC-3'
+d2 + d1	    # 5'-ACATCC-3'
+d1 + d2	    # rasie TypeError(Attention: DNA can add RNA without T->U convert)
+d1 == d2    # False
+```
 
 #### 属性
-##### Seq
-    序列信息，不可修改（实际序列信息保存在内部属性_Seq中）
+##### seq
+序列信息，不可修改（实际序列信息保存在内部属性_Seq中）
 ##### length
-    序列的长度
+序列的长度
 ##### weight
-    序列的分子量（第一次计算后保存在_weight中）
+序列的分子量
+
+#### composition
+序列中各个单位的含量
+
 
 #### 方法 
 ##### align(subject, mode=1, return_score=False)
-* subject：
-    比对对象
-* mode（int）：
-    1 - 使用Needleman-Wunsch进行全局比对
-    2 - 使用Smith-Waterman进行局部比对
-* return_score：
-    是否返回匹配分数
 
-##### mutation(position, target)
-    改变序列
+    subject(str | Sequence)：比对对象
+    mode（int）：
+      1 - 使用Needleman-Wunsch进行全局比对
+      2 - 使用Smith-Waterman进行局部比对
+    return_score：是否返回匹配分数
 
 ##### find(target)
-    在序列中查找目标序列并返回所有匹配的起始位置
 
-#### analysis()
-    打印并返回序列中所有碱基/氨基酸的数量、含量
+在序列中查找目标序列并返回所有匹配的起始位置
+
+    target(str| Sequence)：目标序列
+
+##### mutation(position, target)
+改变序列信息
+
+	position(str | int | List[int])：修改位置的起始值或需要修改的字符串
+	target(str| Sequence)：目标序列
 
 ### biosequence.sequence.RNA
-继承自biosequence.Sequence.Sequence
-#### 属性
-##### revere
-    将该序列变为其反向序列
 
-##### complemente
-    将该序列变为其互补序列
+用于存储RNA序列信息。
+
+#### 属性
+
+##### revered
+
+    返回序列的反向RNA序列
+
+##### complemented
+
+    返回序列的反向互补RNA序列
+
+##### GC
+
+    返回序列的GC含量
 
 ##### orf
-    序列中的开放读码框，需要先经过get_orf()计算才有此属性
+
+    序列中的开放读码框，使用过getOrf()方法后才具有此属性
 
 ##### peptide
-    序列翻译产物，需要先经过tanscript()计算才有此属性
 
+    序列转录产物，使用过tanscript()后才有此属性
 
-#### 方法 
-##### GC()
-    返回序列中GC含量
+#### 方法
 
-#### reversed()
-    返回序列的反向序列
+#### revers()
+
+将序列自身变为其反向序列。注意：会修改序列自身
 
 #### complemented()
-    返回序列的互补序列
+
+将序列自身变为其反向互补序列。注意：会修改序列自身
 
 #### getOrf(multi=False, replace=False)
-* multi（bool）
-    是否查找所有frame +1~+3的orf，默认值为仅查找最长的orf
-* replace（bool）
-    当multi=False是生效，是否使用最长的orf替换原序列
+
+获取序列上的ORF
+
+```python
+multi（bool）：是否查找所有frame +1~+3的orf，设置为False则仅查找最长的orf
+replace（bool）： 当multi=False时生效，是否将最长的orf替换为原序列
+```
+
+#### transcript(filter=True)
+
+将序列翻译为肽链
+
+```python
+filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
+```
 
 ### biosequence.sequence.DNA
-继承自biosequence.Sequence.RNA
+
+用于存储DNA序列信息。
+
+#### 方法
 
 #### translate()
-    返回翻译后的RNA对象
 
-#### transcript(filter)
-* filter（bool）    
-    是否仅返回最长的翻译产物
-    返回值为一个或多个Peptide对象
+将DNA翻译为RNA对象并返回
 
+#### transcript(filter = True)
+
+将序列翻译为肽链
+
+```python
+filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
+```
 ### biosequence.sequence.Peptide
-继承自biosequence.Sequence.Sequence
+
+用于存储肽链序列信息。
+
+### Peptide
 
 #### 属性
 ##### pl
-    肽链的等电点，第一次计算后保存在_pl中
-##### Hphob
-    肽链的亲疏水性，第一次计算后保存在_Hphob中
-    info from [expasy](https://web.expasy.org/protscale/)
+
+基于EMBOSS数据库中氨基酸的pK值，	计算该肽链序列的等电点并返回
+
+#### 方法
+
+##### chargeInpH(pH)
+
+基于EMBOSS数据库中氨基酸的pK值，计算肽链在某一pH下所带的电荷量
+
+##### getHphob(window_size=9, show_img=True)
+
+基于Doolittle（1982）的氨基酸疏水性数据，计算肽链的疏水性，疏水性
+
+    window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
+    show_img(bool)：是否绘制计算结果
 
 ### biosequence.config
 
-#### setAlignPara(match, mismatch, gap_open, gap_extend)
-    序列比对前加入此代码，可以修改比对评分
-* match(int) 
-  匹配得分
-* mismath(int)    
-  错配得分
-* gap_open(int)     
-  开口得分
-* gap_extend(int)   
-  开口延长得分 
-      
+可在此文件中直接修改配置数据，或通过以下函数在运行时修改部分数据
+
+#### setAlignPara(match = 2, mismatch = -3, gap_open = -3, gap_extend = -3)
+
+修改序列比对时的评分规则，需要在比对前进行设置
+
+```python
+match(int) ：匹配得分（>0）
+mismath(int)：错配得分（<0）
+gap_open(int)：开口得分（<0）
+gap_extend(int)：开口延长得分（<0） 
+
+d1 = DNA("ATCTCGC")
+d2 = DNA("ATCCC")
+
+print(d1.align(d2, return_score = True))	#('ATCTCGC', 'ATC-C-C', 4.0)
+setAlignPara(5)
+print(d1.align(d2, return_score = True))	#('ATCTCGC', 'A--TCCC', -0.5)
+```
+
+#### setStartCoden(coden)
+
+修改核酸序列转录时需要的起始密码子
+
+```pytho
+coden(str | List(str))：密码子会在coden中寻找，如有匹配则开始进行转录
+
+d1 = DNA("ATCATCTCAGCATGAC")
+
+print(d1.transcript(filter=False))	# []
+setStartCoden(["AUC"])
+print(d1.transcript(filter=False))	# [N-IISA-C, N-ISA-C]
+```
+
+
+
+### biosequence.utils
+
+工具
+
+#### printAlign(sequence1, sequence2, spacing=10, line_width=30, show_seq=True)
+
+在命令行中按格式输出两个比对后的序列， 可在config.SYMBOL中修改显示的符号
+
+```python
+spacing(int)：序列显示间隔
+line_width(int)：每行显示的字符数
+show_sequence(bool)：是否显示序列
+
+d1 = DNA("ATCATCTCAGCATGAC")
+d2 = DNA("ATCATCGCATGAC")
+
+seq1, seq2 = d1.align(d2)
+printAlign(d1, d2)
+#    1 ATCATCTCAG CAT
+#      ┃┃┃┃┃┃•┃┃• •┃•
+#    1 ATCATCGCAT GAC
+printAlign(d1, d2, spacing=3, line_width=10, show_seq=False)
+#    1 ┃┃┃ ┃┃┃ •┃┃ •
+# 
+#   11 •┃• 
+```
+
+#### read_fasta(filename)
+
+读取fasta文件，并返回所有读取到的（序列列表，序列名列表）**Todo：加入更多解析格式**
+

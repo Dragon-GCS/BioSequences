@@ -1,28 +1,21 @@
-from biosequence.alignment.algorithm import *
+from biosequence import algorithm
+from biosequence.config import AlignmentConfig
+
 
 def alignment(query, subject, mode=1, return_score=False):
     if mode == 1:
-            return NeedlemanWunsch_c(query, subject, return_score)
+        return algorithm.NeedlemanWunsch(query, subject, return_score,
+                                         AlignmentConfig.MATCH,
+                                         AlignmentConfig.MISMATCH,
+                                         AlignmentConfig.GAP_OPEN,
+                                         AlignmentConfig.GAP_EXTEND)
     elif mode == 2:
-            return SmithWaterman_c(query, subject, return_score)
+        return algorithm.SmithWaterman(query, subject, return_score,
+                                       AlignmentConfig.MATCH,
+                                       AlignmentConfig.MISMATCH,
+                                       AlignmentConfig.GAP_OPEN,
+                                       AlignmentConfig.GAP_EXTEND)
     else:
         print("Please choose alignment mode:")
         print("1-Global alignment by Needleman-Wunsch")
         print("2-Local alignment by Smith-Waterman")
-
-
-if __name__ == "__main__":
-    
-    import time
-    seq1 = "aattttgttttagagacagggtctcagcctcccaagtagctgggacgacaggtgcacaccaccatgcctggctaattttaaaattttttgtagagatggggtcctcacaattttgcccaggctggtcttgaactcctgagctcaagggagcctcctgcctcggcctcccaaagtgttgggattacaggcgtgagcactgcacccagccacctggtctgcgtcttaaaagccttcctgactctcaggactgaaagctgccaccagggcgcctttggaaatcgtcgtaattataacccccccggcctgggcgctgagtccttcccaccagccagcaggcactgaccgggttgcagatcgggagacggaggctcggagaggcccaggggctgctctgccatcccccctttccctgcagcctgggggctccctgacgcctggactccccccctgcaggtgctgcccgagctgcggagatcgtgggcgggcacgaggcgcagccacactcccggccctacatggcctccctgcagatgcgggggaacccgggcagccacttctgcggaggcaccttgatccaccccagcttcgtgctgacggccgcgcactgcctgcgggacatgtgagcggccgcctccacacccctgtccgcccgccccgccctcttcctccagccctggcccggccgctgtccctctgcccggggaggacccagctaagccccgtctgcagaccccaggccccgcgcgcgtgggcagttctggggggaggcccggggcagggtcgccgagggaggggtctggggctgcaccgcggcctcgggaagggccggctgtgggcggcggcgagtgtccagggcgccgaggagtgaccaccccacccccgcagaccccagcgcctggtgaacgtggtgctcggagcccacaacgtgcggacgcaggagcccacccagcagcacttctcggtggctcaggtgtttctgaacaactacgacgcggagaacaaactgaacgacgttctcctcatccaggtgggcgggcagggccgcgagggctcggaggggcacggccagagggctccgggacccccattcctgcagccagcattcattgagcaccactgtatcgcaaccggagcacccactgtataccgggccacgaccgaggtcacgccactgcattccagcctgggtggcagagcaagactccatctcaaaagaaagaaagaaggaaagaaaatgaatgaatacaatagtgacaaatgggacaaagggggtcgtggggcccaggcggagggagcggcatccgcggcgttttgaggtggtgggtgtggtgggtgtggtgggagggcggcccgggcggccaccgtgacctggaagcagcgtctcaccgccgcctgccttctgccccagctgagcagcccagccaacctcagtgcctccgtcgccacagtccagctgccacagcaggaccagccagtgccccacggcacccagtgcctggccatgggctggggccgcgtgggtgcccacgaccccccagcccaggtcctgcaggagctcaatgtcaccgtggtcaccttcttctgccggccacataacatttgcactttcgtccctcgccgcaaggccggcatctgcttcgtaagtaaccgtgcccccaccccgggcaccgggctgccatgaggggaggagggcggcggccagggttccacgcccacctcttagctgtgtggcttcatgctgtgcctcagtctccccacctggatggccgtccctgtcctccagggagactcaggtggccccctgatctgtgatggcatcatccaaggaatagactccttcgtgatctggggatgtgccacccgccttttccctgacttcttcacgcgggtagccctctacgtggactggatccgttccacgctgcgccgtgtggaggccaagggccgcccctgaaccgcccctcccacagcgctggccgggaccccgagcctggctccaaaccctcgaggcggatctttggacagaagcagctcttccccgaacactgtggcgtccgggacggccccacccgtccccccacactccctcccacggggctccgggagacaggccggccctgcacctcaccccaccgtgacctcaataaacgttgaaactcccctggctcctgtctgtccttcctatagg"
-    seq2 = "aattttgttttagagacagggtcttgctctgtttgtcctcagcctcccaagtagctgggacgacaggtgcacaccaccatgcctggctaattttaaaattttttgtagagatggggtcctcacaattttgcccaggctggtcttgaactcctgagctcaagggagcctcctgcctcggcctcccaaagtgttgggattacaggcgtgagcactgcacccagccacctggtctgcgtcttaaaagccttcctgactctcaggactgaaagctgccaccagggcgcctttggaaatcgtcgtaattataacccccccggcctgggcgctgagtccttcccaccagccagcaggcactgaccgggttgcagatcgggagacggaggctcggagaggcccaggggctgctctgccatcccccctttccctgcagcctgggggctccctgacgcctggactccccccctgcaggtgctgcccgagctgcggagatcgtgggcgggcacgaggcgcagccacactcccggccctacatggcctccctgcagatgcgggggaacccgggcagccacttctgcggaggcaccttgatccaccccagcttcgtgctgacggccgcgcactgcctgcgggacatgtgagcggccgcctccacacccctgtccgcccgccccgccctcttcctccagccctggcccggccgctgtccctctgcccggggaggacccagctaagccccgtctgcagaccccaggccccgcgcgcgtgggcagttctggggggaggcccggggcagggtcgccgagggaggggtctggggctgcaccgcggcctcgggaagggccggctgtgggcggcggcgagtgtccagggcgccgaggagtgaccaccccacccccgcagaccccagcgcctggtgaacgtggtgctcggagcccacaacgtgcggacgcaggagcccacccagcagcacttctcggtggctcaggtgtttctgaacaactacgacgcggagaacaaactgaacgacgttctcctcatccaggtgggcgggcagggccgcgagggctcggaggggcacggccagagggctccgggacccccattcctgcagccagcattcattgagcaccactgtatcgcaaccggagcacccactgtataccgggccacgaccgaggtcacgccactgcattccagcctgggtggcagagcaagactccatctcaaaagaaagaaagaaggaaagaaaatgaatgaatacaatagtgacaaatgggacaaagggggtcgtggggcccaggcggagggagcggcatccgcggcgttttgaggtggtgggtgtggtgggtgtggtgggagggcggcccgggcggccaccgtgacctggaagcagcgtctcaccgccgcctgccttctgccccagctgagcagcccagccaacctcagtgcctccgtcgccacagtccagctgccacagcaggaccagccagtgccccacggcacccagtgcctggccatgggctggggccgcgtgggtgcccacgaccccccagcccaggtcctgcaggagctcaatgtcaccgtggtcaccttcttctgccggccacataacatttgcactttcgtccctcgccgcaaggccggcatctgcttcgtaagtaaccgtgcccccaccccgggcaccgggctgccatgaggggaggagggcggcggccagggttccacgcccacctcttagctgtgtggcttcatgctgtgcctcagtctccccacctggatggccgtccctgtcctccagggagactcaggtggccccctgatctgtgatggcatcatccaaggaatagactccttcgtgatctggggatgtgccacccgccttttccctgacttcttcacgcgggtagccctctacgtggactggatccgttccacgctgcgccgtgtggaggccaagggccgcccctgaaccgcccctcccacagcgctggccgggaccccgagcctggctccaaaccctcgaggcggatctttggacagaagcagctcttccccgaacactgtggcgtccgggacggccccacccgtccccccacactccctcccacggggctccgggagacaggccggccctgcacctcaccccaccgtgacctcaataaacgttgaaactcccctggctcctgtctgtccttcctatagg"
-    
-    print(f"序列长度{len(seq1)} x {len(seq2)}")
-    start_time = time.time()
-    alignment(seq1, seq2)
-    end_time = time.time()
-    print("C: 总共用时%s"%(end_time-start_time))
-    start_time = time.time()
-    alignment(seq1, seq2, boost=False)
-    end_time = time.time()
-    print("Python: 总共用时%s"%(end_time-start_time))
