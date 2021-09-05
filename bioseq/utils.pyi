@@ -1,5 +1,5 @@
 from typing import List, Tuple, Union
-from biosequence.sequence import Sequence
+from bioseq.sequence import Sequence
 
 def read_fasta(filename:str) -> Tuple[List[str], List[str]]:    ...
 def printAlign(sequence1: Union[str, Sequence], 

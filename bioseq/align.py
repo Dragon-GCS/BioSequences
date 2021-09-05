@@ -1,5 +1,5 @@
-from biosequence import algorithm
-from biosequence.config import AlignmentConfig
+from bioseq import algorithm
+from bioseq.config import AlignmentConfig
 
 
 def alignment(query, subject, mode=1, return_score=False):

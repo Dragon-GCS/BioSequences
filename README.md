@@ -3,17 +3,7 @@
 
 用于分析核酸与肽段序列
 
-Window
-### 打包
-
-    pip install wheel
-    python setup.py sdist bdist_wheel
-
-* Windows: VC++ 14.0以上
-
-### 编译
-
-直接编译即后使用
+### 下载源码编译
 
     python setup.py build_ext --inplace
     rm ./build
@@ -22,31 +12,30 @@ Window
 
     pip install biosequences
 
-
 ---
 
 # 主要功能
-## biosequence.Sequence
+## bioseq.Sequence
 
-### biosequence.Sequence.Sequence(seq="")
+### bioseq.Sequence.Sequence(seq="")
 
 * RNA，DNA和Peptide都基于此抽象类，因此Sequence中的属性和方法为所有序列对象公有的属性和方法。
 * 相同的序列对象可以直接与同类对象或字符串进行拼接，比较。
 * 所有对象都不会对seq进行检查，所以构建对象时需要主要seq中不要出现不应该出现的字符，以免发生不必要的问题
 
 ```python
-from biosequence.sequence import DNA, RNA
+from bioseq.sequence import DNA, RNA
 
 d1 = DNA("ATCC")
 d2 = DNA("AC")
 r1 = Peptide("MATN")
 
-d1          # 5'-ATCC-3'
-r1          #  N-MATN-C
-d1 + d2	    # 5'-ATCCAC-3'
-d2 + d1	    # 5'-ACATCC-3'
-d1 + d2	    # rasie TypeError(Attention: DNA can add RNA without T->U convert)
-d1 == d2    # False
+d1  # 5'-ATCC-3'
+r1  # N-MATN-C
+d1 + d2  # 5'-ATCCAC-3'
+d2 + d1  # 5'-ACATCC-3'
+d1 + d2  # rasie TypeError(Attention: DNA can add RNA without T->U convert)
+d1 == d2  # False
 ```
 
 #### 属性
@@ -82,7 +71,7 @@ d1 == d2    # False
 	position(str | int | List[int])：修改位置的起始值或需要修改的字符串
 	target(str| Sequence)：目标序列
 
-### biosequence.sequence.RNA
+### bioseq.sequence.RNA
 
 用于存储RNA序列信息。
 
@@ -135,7 +124,7 @@ replace（bool）： 当multi=False时生效，是否将最长的orf替换为原
 filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
 
-### biosequence.sequence.DNA
+### bioseq.sequence.DNA
 
 用于存储DNA序列信息。
 
@@ -152,7 +141,7 @@ filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的�
 ```python
 filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
-### biosequence.sequence.Peptide
+### bioseq.sequence.Peptide
 
 用于存储肽链序列信息。
 
@@ -176,7 +165,7 @@ filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的�
     window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
     show_img(bool)：是否绘制计算结果
 
-### biosequence.config
+### bioseq.config
 
 可在此文件中直接修改配置数据，或通过以下函数在运行时修改部分数据
 
@@ -214,7 +203,7 @@ print(d1.transcript(filter=False))	# [N-IISA-C, N-ISA-C]
 
 
 
-### biosequence.utils
+### bioseq.utils
 
 工具
 

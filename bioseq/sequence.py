@@ -3,9 +3,9 @@ import re
 from collections import Counter
 from abc import ABC, abstractmethod
 
-from biosequence import config
-from biosequence.align import alignment
-from biosequence.config import HYDROPATHY, MW, PK, NC_INFO, SYMBOL
+from bioseq import config
+from bioseq.align import alignment
+from bioseq.config import HYDROPATHY, MW, PK, NC_INFO, SYMBOL
 
 
 class Sequence(ABC):

@@ -1,4 +1,4 @@
-from biosequence.config import SYMBOL
+from bioseq.config import SYMBOL
 
 
 def read_fasta(filename):

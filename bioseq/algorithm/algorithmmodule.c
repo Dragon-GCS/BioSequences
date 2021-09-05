@@ -6,8 +6,8 @@
 static PyObject *
 algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
 {
-    const char *query;
-    const char *subject;
+    char *query;
+    char *subject;
     int return_score = 0;
     float match;
     float mismatch;
@@ -37,8 +37,8 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
 static PyObject *
 algorithm_SmithWaterman(PyObject *self, PyObject *args)
 {
-    const char *query;
-    const char *subject;
+    char *query;
+    char *subject;
     int return_score = 0;
     float match;
     float mismatch;
