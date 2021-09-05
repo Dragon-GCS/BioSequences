@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "algorithm.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -24,11 +23,11 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
     NeedlemanWunsch(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
     PyObject *result;
-    if (return_score != 0) 
+    if (return_score != 0)
        result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
     else
         result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));
-    
+
     free(align_query);
     free(align_subject);
     return result;
@@ -55,7 +54,7 @@ algorithm_SmithWaterman(PyObject *self, PyObject *args)
     SmithWaterman(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
     PyObject *result;
-    if (return_score != 0) 
+    if (return_score != 0)
        result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
     else
         result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));

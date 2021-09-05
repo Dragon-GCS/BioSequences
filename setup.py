@@ -11,7 +11,7 @@ with open("README.md", "r", encoding = "utf-8") as f:
 
 setup(
         name = 'BioSequences',
-        version = '1.0.3',
+        version = '1.0.6',
         author = 'Dragon',
         author_email = '878173121@qq.com',
         description = 'Tools to analysis biology sequence',
@@ -22,7 +22,6 @@ setup(
         project_urls={
                 "Bug Tracker": "https://github.com/Dragon-GCS/BioSequence/issues",
             },
-        install_requires = ["matplotlib >= 3.4.3"],
         classifiers = [
                 'Topic :: Scientific/Engineering :: Bio-Informatics',
                 "Environment :: Console",
@@ -36,6 +35,7 @@ setup(
         keywords=["biology", "analysis"],
         packages = ['bioseq'],     # or find_packages(exclude=["*.tests", "*.tests.*"...])
         ext_modules=[module1],
+        include_package_data=False,
 )
 
 # reference https://docs.python.org/zh-cn/3.8/distutils/apiref.html#distutils.core.setup

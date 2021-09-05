@@ -304,7 +304,7 @@ class Peptide(Sequence):
 
         return pos_charge - neg_charge
 
-    def getHphob(self, window_size = 9, show_img = True):
+    def getHphob(self, window_size = 9):
         """
         Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
         Each aa's score is the average score of all aa in window_size.
@@ -321,7 +321,7 @@ class Peptide(Sequence):
             self._Hphob_list = []
             for i in range(half_part, len(_Hphob) - half_part):
                 self._Hphob_list.append(round(sum(_Hphob[i - half_part: i + window_size - half_part]) / window_size, 3))
-
+        """
         if show_img:
             from matplotlib import pyplot as plt
 
@@ -332,7 +332,7 @@ class Peptide(Sequence):
             plt.xlabel("Position")
             plt.ylabel("Score")
             plt.show()
-
+        """
         return self._Hphob_list
 
     def _print(self):
