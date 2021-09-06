@@ -11,7 +11,7 @@ with open("README.md", "r", encoding = "utf-8") as f:
 
 setup(
         name = 'BioSequences',
-        version = '1.0.6',
+        version = '1.0.7',
         author = 'Dragon',
         author_email = '878173121@qq.com',
         description = 'Tools to analysis biology sequence',
@@ -35,6 +35,7 @@ setup(
         keywords=["biology", "analysis"],
         packages = ['bioseq'],     # or find_packages(exclude=["*.tests", "*.tests.*"...])
         ext_modules=[module1],
+        package_data = {"": ["*.pyi"]},
         include_package_data=False,
 )
 

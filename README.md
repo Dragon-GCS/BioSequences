@@ -158,12 +158,12 @@ filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的�
 
 基于EMBOSS数据库中氨基酸的pK值，计算肽链在某一pH下所带的电荷量
 
-##### getHphob(window_size=9)
+##### getHphob(window_size=9, show_img=True)
 
 基于Doolittle（1982）的氨基酸疏水性数据，计算肽链的疏水性，疏水性
 
     window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
-    返回值为各个氨基酸的疏水性列表，可直接使用plt.plot(result)进行绘制
+    show_img：绘制疏水性结果，需要安装matplotlib
 
 ### bioseq.config
 

@@ -67,13 +67,13 @@ def setStartCoden(coden):
 
 ################################ Align Parameter ################################
 class AlignmentConfig:
-    MATCH = 2
-    MISMATCH = -3
-    GAP_OPEN = -3
-    GAP_EXTEND = -3
+    MATCH:float = 2
+    MISMATCH:float = -3
+    GAP_OPEN:float = -3
+    GAP_EXTEND:float = -3
 
 
-def setAlignPara(match = 2, mismatch = -3, gap_open = -3, gap_extend = -3):
+def setAlignPara(match:float = 2, mismatch:float = -3, gap_open:float = -3, gap_extend:float = -3):
     AlignmentConfig.MATCH = match
     AlignmentConfig.MISMATCH = mismatch
     AlignmentConfig.GAP_OPEN = gap_open
