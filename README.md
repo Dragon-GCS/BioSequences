@@ -15,32 +15,31 @@
 ---
 
 # 主要功能
-## bioseq.Sequence
 
-### bioseq.Sequence.Sequence(seq="")
+### bioseq.Sequence(seq="")
 
 * RNA，DNA和Peptide都基于此抽象类，因此Sequence中的属性和方法为所有序列对象公有的属性和方法。
 * 相同的序列对象可以直接与同类对象或字符串进行拼接，比较。
 * 所有对象都不会对seq进行检查，所以构建对象时需要主要seq中不要出现不应该出现的字符，以免发生不必要的问题
 
 ```python
-from bioseq.sequence import DNA, RNA
+from bioseq import DNA, Peptide
 
 d1 = DNA("ATCC")
 d2 = DNA("AC")
-r1 = Peptide("MATN")
+p1 = Peptide("MATN")
 
 d1  # 5'-ATCC-3'
-r1  # N-MATN-C
+p1  # N-MATN-C
 d1 + d2  # 5'-ATCCAC-3'
 d2 + d1  # 5'-ACATCC-3'
-d1 + d2  # rasie TypeError(Attention: DNA can add RNA without T->U convert)
+d1 + p2  # TypeError(Only str or DNA can be added to DNA)
 d1 == d2  # False
 ```
 
 #### 属性
 ##### seq
-序列信息，不可修改（实际序列信息保存在内部属性_Seq中）
+序列信息，不可修改
 ##### length
 序列的长度
 ##### weight
@@ -71,7 +70,7 @@ d1 == d2  # False
 	position(str | int | List[int])：修改位置的起始值或需要修改的字符串
 	target(str| Sequence)：目标序列
 
-### bioseq.sequence.RNA
+### bioseq.RNA
 
 用于存储RNA序列信息。
 
@@ -124,7 +123,7 @@ replace（bool）： 当multi=False时生效，是否将最长的orf替换为原
 filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
 
-### bioseq.sequence.DNA
+### bioseq.DNA
 
 用于存储DNA序列信息。
 

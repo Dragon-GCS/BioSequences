@@ -11,7 +11,7 @@ with open("README.md", "r", encoding = "utf-8") as f:
 
 setup(
         name = 'BioSequences',
-        version = '1.0.7',
+        version = '1.0.8',
         author = 'Dragon',
         author_email = '878173121@qq.com',
         description = 'Tools to analysis biology sequence',

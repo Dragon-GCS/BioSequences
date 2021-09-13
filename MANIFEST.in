@@ -1,11 +1,4 @@
 include *.md
-include setup.py
-recursive-include bioseq *
+include bioseq/algorithm/*.h
 
-global-exclude *__pycache__
-global-exclude *.pyc
-
-recursive-exclude .vscode *
-recursive-exclude .git *
-recursive-exclude .venv *
 

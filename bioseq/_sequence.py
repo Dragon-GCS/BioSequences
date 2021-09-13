@@ -3,9 +3,8 @@ import re
 from collections import Counter
 from abc import ABC, abstractmethod
 
-from bioseq import config
-from bioseq.align import alignment
-from bioseq.config import HYDROPATHY, MW, PK, NC_INFO, SYMBOL
+from bioseq import config, algorithm
+from bioseq.config import HYDROPATHY, MW, PK, NC_INFO, SYMBOL, AlignmentConfig
 
 
 class Sequence(ABC):
@@ -66,8 +65,19 @@ class Sequence(ABC):
             subject = subject._seq
         elif not isinstance(subject, str):
             raise TypeError(f"Only str or {self.__class__.__name__} can be aligned to {self.__class__.__name__}")
+        
+        args = (self._seq, subject, return_score,
+                AlignmentConfig.MATCH, AlignmentConfig.MISMATCH,
+                AlignmentConfig.GAP_OPEN,  AlignmentConfig.GAP_EXTEND)
 
-        return alignment(self._seq, subject, mode, return_score)
+        if mode == 1:
+            return algorithm.NeedlemanWunsch(*args)
+        elif mode == 2:
+            return algorithm.SmithWaterman(*args)
+        else:
+            print("Please choose alignment mode:")
+            print("1-Global alignment by Needleman-Wunsch")
+            print("2-Local alignment by Smith-Waterman")
 
     def find(self, target):
         """
