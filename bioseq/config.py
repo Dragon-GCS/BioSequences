@@ -52,11 +52,13 @@ TABLE = {
         "UUA": "L", "UUC": "F", "UUG": "L", "UUU": "F"
 }
 
-START_CODON = ["AUG"]
-
-
-def setStartCoden(coden):
+def setStartCoden(coden = None):
     global START_CODON
+
+    if not coden:
+        START_CODON = ["AUG"]
+        return
+
     if isinstance(coden, str) and len(coden) == 3:
         START_CODON = [coden]
     elif isinstance(coden, list):
@@ -64,6 +66,7 @@ def setStartCoden(coden):
     else:
         raise ValueError("Coden should be a str or list of str")
 
+setStartCoden()
 
 ################################ Align Parameter ################################
 class AlignmentConfig:

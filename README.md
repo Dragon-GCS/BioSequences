@@ -50,13 +50,12 @@ d1 == d2  # False
 
 
 #### 方法 
-##### align(subject, mode=1, return_score=False)
+##### align(subject, mode=1)
 
     subject(str | Sequence)：比对对象
     mode（int）：
       1 - 使用Needleman-Wunsch进行全局比对
       2 - 使用Smith-Waterman进行局部比对
-    return_score：是否返回匹配分数
 
 ##### find(target)
 
@@ -115,12 +114,12 @@ multi（bool）：是否查找所有frame +1~+3的orf，设置为False则仅查�
 replace（bool）： 当multi=False时生效，是否将最长的orf替换为原序列
 ```
 
-#### transcript(filter=True)
+#### transcript(filtered=True)
 
 将序列翻译为肽链
 
 ```python
-filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
+filtered(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
 
 ### bioseq.DNA
@@ -133,12 +132,12 @@ filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的�
 
 将DNA翻译为RNA对象并返回
 
-#### transcript(filter = True)
+#### transcript(filtered = True)
 
 将序列翻译为肽链
 
 ```python
-filter(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
+filtered(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
 ### bioseq.sequence.Peptide
 
@@ -181,23 +180,23 @@ gap_extend(int)：开口延长得分（<0）
 d1 = DNA("ATCTCGC")
 d2 = DNA("ATCCC")
 
-print(d1.align(d2, return_score = True))	#('ATCTCGC', 'ATC-C-C', 4.0)
+print(d1.align(d2))	#('ATCTCGC', 'ATC-C-C', 4.0)
 setAlignPara(5)
-print(d1.align(d2, return_score = True))	#('ATCTCGC', 'A--TCCC', -0.5)
+print(d1.align(d2))	#('ATCTCGC', 'A--TCCC', -0.5)
 ```
 
-#### setStartCoden(coden)
+#### setStartCoden(coden = None)
 
-修改核酸序列转录时需要的起始密码子
+修改核酸序列转录时需要的起始密码子，为传入coden则将密码子初始化为*"AUG"*
 
-```pytho
+```python
 coden(str | List(str))：密码子会在coden中寻找，如有匹配则开始进行转录
 
 d1 = DNA("ATCATCTCAGCATGAC")
 
-print(d1.transcript(filter=False))	# []
+print(d1.transcript(filtered=False))	# []
 setStartCoden(["AUC"])
-print(d1.transcript(filter=False))	# [N-IISA-C, N-ISA-C]
+print(d1.transcript(filtered=False))	# [N-IISA-C, N-ISA-C]
 ```
 
 
@@ -233,3 +232,12 @@ printAlign(d1, d2, spacing=3, line_width=10, show_seq=False)
 
 读取fasta文件，并返回所有读取到的（序列列表，序列名列表）**Todo：加入更多解析格式**
 
+# Change Log
+
+**1.0.9**
+
+* add type annotations, remove `*.pyi` file
+* add: `Sequence.reset_cache()` to reset some cached property, to update the value after mutation, include `weight`, `composition`, `GC(DNA, RNA)`, `orf(DNA, RNA)`, `peptide(DNA, RNA)`, `translate(DNA, RNA)`, `pI(Peptide)`, `Hphob_list(Peptide)`.
+* add: warning when mutation overlaped previous mutaion
+* fix: some wrong typing check in `Sequence.find()`, `Sequence.mutation()`
+* remove: `return_score: bool` for `Sequence.align()`

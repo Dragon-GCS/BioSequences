@@ -1,9 +1,10 @@
+from typing import List, Tuple
 from bioseq.config import SYMBOL
 
 
-def read_fasta(filename):
+def read_fasta(filename: str) -> Tuple[List[str], List[str]]:
     """
-    Read content of fasta file.
+    Read fasta file
     Args:
         filename: the fasta file's name
     Returns:
@@ -11,7 +12,7 @@ def read_fasta(filename):
         seq_ids: the list of sequence's ids
     """
     seq = ""
-    seq_list =[]
+    seq_list = []
     seq_ids = []
 
     with open(filename) as f:
@@ -26,10 +27,15 @@ def read_fasta(filename):
             seq += line.strip()
         seq_list.append(seq)
 
-    return seq_list, seq_ids 
+    return seq_list, seq_ids
 
 
-def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_seq = True):
+def printAlign(
+        sequence1: str,
+        sequence2: str,
+        spacing: int = 10,
+        line_width: int = 30,
+        show_seq: bool = True) -> None:
     """
     Print two sequence by a pretty format
     Args:
@@ -43,7 +49,8 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_seq = T
     format_seq1 = ""
     format_seq2 = ""
     count = 0
-    length = len(sequence1) if len(sequence1) < len(sequence2) else len(sequence2)
+    length = len(sequence1) if len(sequence1) < len(
+        sequence2) else len(sequence2)
     match_symbol, mismatch_symbol, gap_symbol = SYMBOL["printAlign"]
 
     for i in range(length):
@@ -51,7 +58,7 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_seq = T
         base2 = sequence2[i]
         if base1 == base2:
             symbol_line += match_symbol
-        elif base1 == "-" or  base2 == "-":
+        elif base1 == "-" or base2 == "-":
             symbol_line += gap_symbol
         else:
             symbol_line += mismatch_symbol
@@ -76,15 +83,15 @@ def printAlign(sequence1, sequence2, spacing = 10, line_width = 30, show_seq = T
         space_num += space_each_line
         if show_seq:
             print(f"{i + 1:>5}", end=" ")
-            print(format_seq1[start : end])
-        
+            print(format_seq1[start: end])
+
             print(f" " * 5, end=" ")
-            print(symbol_line[start : end])
+            print(symbol_line[start: end])
 
             print(f"{i + 1:>5}", end=" ")
-            print(format_seq2[start : end])
+            print(format_seq2[start: end])
         else:
             print(f"{i + 1:>5}", end=" ")
-            print(symbol_line[start : end])
-        
+            print(symbol_line[start: end])
+
         print()

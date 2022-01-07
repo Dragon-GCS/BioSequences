@@ -7,13 +7,12 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
 {
     char *query;
     char *subject;
-    int return_score = 0;
     float match;
     float mismatch;
     float gap_open;
     float gap_extend;
 
-    if (!PyArg_ParseTuple(args, "sspffff", &query, &subject, &return_score, &match, &mismatch, &gap_open, &gap_extend))
+    if (!PyArg_ParseTuple(args, "sspfff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);
@@ -22,11 +21,7 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
     float score;
     NeedlemanWunsch(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
-    PyObject *result;
-    if (return_score != 0)
-       result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
-    else
-        result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));
+    PyObject *result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
 
     free(align_query);
     free(align_subject);
@@ -38,13 +33,12 @@ algorithm_SmithWaterman(PyObject *self, PyObject *args)
 {
     char *query;
     char *subject;
-    int return_score = 0;
     float match;
     float mismatch;
     float gap_open;
     float gap_extend;
 
-    if (!PyArg_ParseTuple(args, "sspffff", &query, &subject, &return_score, &match, &mismatch, &gap_open, &gap_extend))
+    if (!PyArg_ParseTuple(args, "sspfff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);
@@ -53,11 +47,7 @@ algorithm_SmithWaterman(PyObject *self, PyObject *args)
     float score;
     SmithWaterman(query, subject, align_query, align_subject, &score, match, mismatch, gap_open, gap_extend);
 
-    PyObject *result;
-    if (return_score != 0)
-       result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
-    else
-        result = PyTuple_Pack(2, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject));
+    PyObject *result = PyTuple_Pack(3, PyUnicode_FromString(align_query), PyUnicode_FromString(align_subject), PyFloat_FromDouble(score));
 
     free(align_query);
     free(align_subject);

@@ -4,14 +4,14 @@ module1 = Extension(
     'bioseq.algorithm',
     sources=['bioseq/algorithm/algorithmmodule.c', 'bioseq/algorithm/algorithm.c'],
 )
-# python setup.py bdist_ext --inplace 测试时编译python扩展模块后可正常导入使用
+# python setup.py build_ext --inplace 测试时编译python扩展模块后可正常导入使用
 
 with open("README.md", "r", encoding = "utf-8") as f:
     long_description = f.read()
 
 setup(
         name = 'BioSequences',
-        version = '1.0.8',
+        version = '1.0.9',
         author = 'Dragon',
         author_email = '878173121@qq.com',
         description = 'Tools to analysis biology sequence',
@@ -35,7 +35,6 @@ setup(
         keywords=["biology", "analysis"],
         packages = ['bioseq'],     # or find_packages(exclude=["*.tests", "*.tests.*"...])
         ext_modules=[module1],
-        package_data = {"": ["*.pyi"]},
         include_package_data=False,
 )
 
