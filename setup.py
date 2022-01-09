@@ -1,4 +1,5 @@
 from setuptools import setup, Extension
+from bioseq import __version__
 
 module1 = Extension(
     'bioseq.algorithm',
@@ -11,7 +12,7 @@ with open("README.md", "r", encoding = "utf-8") as f:
 
 setup(
         name = 'BioSequences',
-        version = '1.0.9',
+        version = __version__,
         author = 'Dragon',
         author_email = '878173121@qq.com',
         description = 'Tools to analysis biology sequence',
@@ -30,7 +31,7 @@ setup(
                 'Operating System :: OS Independent',
                 'Natural Language :: Chinese (Simplified)',
                 "Natural Language :: English",
-                'Programming Language :: Python :: 3.7',
+                'Programming Language :: Python :: 3.8',
               ],
         keywords=["biology", "analysis"],
         packages = ['bioseq'],     # or find_packages(exclude=["*.tests", "*.tests.*"...])

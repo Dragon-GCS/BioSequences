@@ -7,16 +7,16 @@ from typing import Dict, List, Optional, Tuple, TypeVar, Union, Iterable
 from bioseq import config, algorithm
 from bioseq.config import AlignmentConfig
 
-T = TypeVar("T", "RNA", "DNA")
 
-
-class Sequence(ABC, str):
+class Sequence:
+    info: str
     _seq: str
     _composition: Dict[str, int]
     _weight: float
 
-    def __init__(self, seq: str = ""):
+    def __init__(self, seq: str = "", info:str = ""):
         self._seq = seq.upper()
+        self.info = info
         self.reset_cache()
 
     def reset_cache(self):
@@ -160,6 +160,24 @@ class Sequence(ABC, str):
         self.reset_cache()  # reset cached property
         return self._seq
 
+    def toDNA(self) -> "DNA":
+        """
+        Convert Sequence to a DNA sequence
+        """
+        return DNA(self.seq, self.info)
+
+    def toRNA(self) -> "RNA":
+        """
+        Convert Sequence to a RNA sequence
+        """
+        return DNA(self.seq, self.info)
+
+    def toPeptide(self) -> "Peptide":
+        """
+        Convert Sequence to a Peptide
+        """
+        return Peptide(self.seq, self.info)
+
     @abstractmethod
     def _print(self) -> str:
         """
@@ -212,7 +230,6 @@ class Peptide(Sequence):
     _Hphob_list: List[float]
 
     def reset_cache(self):
-        print("Remove cache")
         super().reset_cache()
         self._pI = 0.
         self._Hphob_list = []
@@ -303,8 +320,12 @@ class Peptide(Sequence):
         return self._Hphob_list
 
     def _print(self) -> str:
-        return f"N-{super()._print()}-C"
+        if self._seq:
+            return f"N-{super()._print()}-C"
+        return self.__class__.__name__ + "()"
 
+
+T = TypeVar("T", "RNA", "DNA")
 
 class RNA(Sequence):
     _GC: float
@@ -407,7 +428,7 @@ class RNA(Sequence):
     def _print(self):
         if self._seq:
             return f"5'-{super()._print()}-3'"
-        return ""
+        return self.__class__.__name__ + "()"
 
 
 class DNA(RNA):

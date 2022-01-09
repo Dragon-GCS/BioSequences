@@ -1,10 +1,68 @@
-from typing import List, Tuple
+from typing import Iterable, List, Union
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import HTTPError
+
 from bioseq.config import SYMBOL
+from bioseq import DNA, RNA, Peptide, Sequence
+
+EUTILS_POST = {
+    "db": "",           # 数据库
+    "rettype": "fasta", # 数据类型
+    "retmode": "text",  # 返回类型
+    "id": "",           # uid
+}
+EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
 
 
-def read_fasta(filename: str) -> Tuple[List[str], List[str]]:
+def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
+    """
+    Fetch sequence corresponding to UID from NCBI E-utilities. Only support RNA, mRNA(DNA), Protein.
+
+    NM_(mRNA):      Protein-coding transcripts (usually curated)
+    NR_(RNA ):      Non-protein-coding transcripts
+    XM_(mRNA):      Predicted model protein-coding transcript
+    XR_(RNA ):      Predicted model non-protein-coding transcript
+    AP_(Protein):   Annotated on AC_ alternate assembly
+    NP_(Protein):   Associated with an NM_ or NC_ accession
+    YP_(Protein):   Annotated on genomic molecules without an instantiated transcript record
+    XP_(Protein):   Predicted model, associated with an XM_ accession
+    WP_(Protein):   Non-redundant across multiple strains and species
+
+    Args:
+        uid: NCBI's unique id
+    Returns:
+        A sequence object corresponding to UID
+    """
+    # check uid
+    if uid[:3] in ["AP_", "NP_", "YP_", "XP_", "WP_"]:
+        sequence = Peptide()
+        EUTILS_POST["db"] = "protein"
+    elif uid[:3] in ["NM_", "XM_"]:
+        EUTILS_POST["db"] = "nuccore"
+        sequence = DNA()
+    elif uid[:3] in ["NR_", "XR_"]:
+        EUTILS_POST["db"] = "nuccore"
+        sequence = RNA()
+    else:
+        raise ValueError(f"{uid} is not a support uid")
+
+    EUTILS_POST["id"] = uid
+    try:
+        raw_info: List[str] = urlopen(
+            EUTILS_URL + urlencode(EUTILS_POST)).read().decode().split("\n")
+        sequence._seq, sequence.info = "".join(
+            raw_info[1:]), raw_info[0].lstrip(">")
+    except HTTPError as e:
+        print(e)
+    finally:
+        return sequence
+
+
+def loadFasta(filename: str) -> Iterable[Sequence]:
     """
     Read fasta file
+
     Args:
         filename: the fasta file's name
     Returns:
@@ -12,22 +70,24 @@ def read_fasta(filename: str) -> Tuple[List[str], List[str]]:
         seq_ids: the list of sequence's ids
     """
     seq = ""
-    seq_list = []
-    seq_ids = []
+    info = ""
 
     with open(filename) as f:
-        for line in f.readlines():
+        while line := f.readline():
+            # process the last line
+            if not line.strip():
+                yield Sequence(seq, info)
+
             if line.startswith(">"):
-                seq_ids.append(line[1:].strip())
-
+                # yield previous sequence
                 if seq:
-                    seq_list.append(seq)
-                    seq = ""
-                continue
-            seq += line.strip()
-        seq_list.append(seq)
+                    yield Sequence(seq, info)
+                    seq = ""    # reset seq
+                info = line[1:].strip()
+            else:
+                seq += line.strip()
 
-    return seq_list, seq_ids
+        yield Sequence(seq, info)
 
 
 def printAlign(
@@ -38,6 +98,7 @@ def printAlign(
         show_seq: bool = True) -> None:
     """
     Print two sequence by a pretty format
+
     Args:
         sequence1:  Sequence1
         sequence2:  Sequence2

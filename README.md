@@ -16,7 +16,7 @@
 
 # 主要功能
 
-### bioseq.Sequence(seq="")
+## bioseq.Sequence(seq="", info="")
 
 * RNA，DNA和Peptide都基于此抽象类，因此Sequence中的属性和方法为所有序列对象公有的属性和方法。
 * 相同的序列对象可以直接与同类对象或字符串进行拼接，比较。
@@ -37,27 +37,29 @@ d1 + p2  # TypeError(Only str or DNA can be added to DNA)
 d1 == d2  # False
 ```
 
-#### 属性
-##### `seq`
+### 属性
+#### `seq`
 序列信息，不可修改
-##### `length`
+#### `info`
+序列的一些说明信息（可选）
+#### `length`
 序列的长度
-##### `weight`
+#### `weight`
 序列的分子量
 
 #### `composition`
 序列中各个单位的含量
 
 
-#### 方法 
-##### `align(subject, mode=1)`
+### 方法 
+#### `align(subject, mode=1)`
 ```python
 subject(str | Sequence)：比对对象
 mode（int）：
     1 - 使用Needleman-Wunsch进行全局比对
     2 - 使用Smith-Waterman进行局部比对
 ```
-##### `find(target)`
+#### `find(target)`
 
 在序列中查找目标序列并返回所有匹配的起始位置
 
@@ -65,39 +67,43 @@ mode（int）：
 target(str| Sequence)：目标序列
 ```
 
-##### `mutation(position, target)`
+#### `mutation(position, target)`
 改变序列信息
 ```python
-position(str | int | List[int])：修改位置的起始值或需要修改的字符串
+position(str | int | List[int])：需要修改的单个字符或者是需要修改的字符串起始位置。
 target(str| Sequence)：目标序列
 ```
-### `bioseq.RNA`
+
+#### `toDNA()`, `toRNA()`, `toPeptide()`
+将`Sequence`序列转换为对应的生物序列
+
+## `bioseq.RNA`
 
 用于存储RNA序列信息。
 
-#### 属性
+### 属性
 
-##### `revered`
+#### `revered`
 
     返回序列的反向RNA序列
 
-##### `complemented`
+#### `complemented`
 
     返回序列的反向互补RNA序列
 
-##### `GC`
+#### `GC`
 
     返回序列的GC含量
 
-##### `orf`
+#### `orf`
 
     序列中的开放读码框，使用过getOrf()方法后才具有此属性
 
-##### `peptide`
+#### `peptide`
 
     序列转录产物，使用过tanscript()后才有此属性
 
-#### 方法
+### 方法
 
 #### `revers()`
 
@@ -124,11 +130,11 @@ replace（bool）： 当multi=False时生效，是否将最长的orf替换为原
 filtered(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
 
-###` bioseq.DNA`
+## `bioseq.DNA`
 
 用于存储DNA序列信息。
 
-#### 方法
+### 方法
 
 #### `translate()`
 
@@ -141,32 +147,32 @@ filtered(bool)：是否对翻译进行筛选。设置为True时仅返回最长�
 ```python
 filtered(bool)：是否对翻译进行筛选。设置为True时仅返回最长的翻译产物，否则返回所有翻译产物。翻译产物均为Peptide对象。
 ```
-### `bioseq.Peptide`
+## `bioseq.Peptide`
 
 用于存储肽链序列信息。
 
-#### 属性
-##### `pI`
+### 属性
+#### `pI`
 
 基于EMBOSS数据库中氨基酸的pK值，	计算该肽链序列的等电点并返回
 
-#### 方法
+### 方法
 
-##### `chargeInpH(pH: float)`
+#### `chargeInpH(pH: float)`
 
 基于EMBOSS数据库中氨基酸的pK值，计算肽链在某一pH下所带的电荷量
 ```python
 pH(float): 溶液的pH值
 ```
 
-##### `getHphob(window_size=9, show_img=True)`
+#### `getHphob(window_size=9, show_img=True)`
 
 基于Doolittle（1982）的氨基酸疏水性数据，计算肽链的疏水性，疏水性
 ```python
 window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
 show_img：绘制疏水性结果，需要matplotlib
 ```
-### `bioseq.config`
+## `bioseq.config`
 
 可在此文件中直接修改配置数据，或通过以下函数在运行时修改部分数据
 
@@ -204,7 +210,7 @@ print(d1.transcript(filtered=False))	# [N-IISA-C, N-ISA-C]
 
 
 
-### bioseq.utils
+## bioseq.utils
 
 工具
 
@@ -231,15 +237,29 @@ printAlign(d1, d2, spacing=3, line_width=10, show_seq=False)
 #   11 •┃• 
 ```
 
-#### `read_fasta(filename)`
+#### `loadFasta(filename)`
 
 读取fasta文件，并返回所有读取到的（序列列表，序列名列表）**Todo：加入更多解析格式**
 
+#### fetchNCBI(uid)
+
+```python
+uid(str ): NCBI中序列的唯一编号，如 NC_XXXX、NM_XXXX等，仅限于DNA(mRNA)、RNA和多肽序列，返回对应的序列对象。
+```
+> NCBI RefSeq's document: https://www.ncbi.nlm.nih.gov/books/NBK21091/table/ch18.T.refseq_accession_numbers_and_mole
+> some NCBI E-utilities's api: https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
 # Change Log
+
+**1.0.10**
+
+add: `info`attribute for `Sequence`
+add: `toDNA()`, `toRNA()`, `toPeptide()` method for `Sequence`
+add: `utils.fetchNCBI()`
+change: `utils.read_fasta()` to `utils.loadFasta` and be a generator of `Sequence`
 
 **1.0.9**
 
-* add type annotations, remove `*.pyi` file
+* add: add type annotations, remove `*.pyi` file
 * add: `Sequence.reset_cache()` to reset some cached property, to update the value after mutation, include `weight`, `composition`, `GC(DNA, RNA)`, `orf(DNA, RNA)`, `peptide(DNA, RNA)`, `translate(DNA, RNA)`, `pI(Peptide)`, `Hphob_list(Peptide)`.
 * add: warning when mutation overlaped previous mutaion
 * fix: some wrong typing check in `Sequence.find()`, `Sequence.mutation()`
