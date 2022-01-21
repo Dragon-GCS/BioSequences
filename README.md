@@ -1,4 +1,8 @@
 # BioSequences
+![PyPI - Downloads](https://img.shields.io/pypi/dw/Biosequences?logo=pypi&label=download) ![version](https://img.shields.io/pypi/v/biosequences?label=version&logo=pypi&color=lightgrey) 
+![python version](https://img.shields.io/static/v1?label=python&message=>=3.6&color=orange&logo=python) ![PyPI - License](https://img.shields.io/pypi/l/biosequences?logo=gnuprivacyguard&color=green)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/biosequences) ![GitHub last commit](https://img.shields.io/github/last-commit/Dragon-GCS/Biosequences?color=yellowgreen) ![GitHub Repo stars](https://img.shields.io/github/stars/dragon-gcs/biosequences?color=blue)
+
 ---
 
 用于分析核酸与肽段序列
