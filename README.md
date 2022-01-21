@@ -250,7 +250,12 @@ uid(str ): NCBI中序列的唯一编号，如 NC_XXXX、NM_XXXX等，仅限于DN
 > some NCBI E-utilities's api: https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
 # Change Log
 
-**1.0.10**
+**1.1.1**
+
+add: unittest
+fix: some bug found in unintest
+
+**1.1.0**
 
 add: `info`attribute for `Sequence`
 add: `toDNA()`, `toRNA()`, `toPeptide()` method for `Sequence`

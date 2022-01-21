@@ -1,33 +1,7 @@
-class TestSeq:
-    name = "Homo sapiens actin beta (ACTB), mRNA"
-    ID = "NM_001101.5"
-    DNA = "atggatgatgatatcgccgcgctcgtcgtcgacaacggctccggcatgtgcaaggccggcttcgcgggcg" \
-          "acgatgccccccgggccgtcttcccctccatcgtggggcgccccaggcaccagggcgtgatggtgggcat" \
-          "gggtcagaaggattcctatgtgggcgacgaggcccagagcaagagaggcatcctcaccctgaagtacccc" \
-          "atcgagcacggcatcgtcaccaactgggacgacatggagaaaatctggcaccacaccttctacaatgagc" \
-          "tgcgtgtggctcccgaggagcaccccgtgctgctgaccgaggcccccctgaaccccaaggccaaccgcga" \
-          "gaagatgacccagatcatgtttgagaccttcaacaccccagccatgtacgttgctatccaggctgtgcta" \
-          "tccctgtacgcctctggccgtaccactggcatcgtgatggactccggtgacggggtcacccacactgtgc" \
-          "ccatctacgaggggtatgccctcccccatgccatcctgcgtctggacctggctggccgggacctgactga" \
-          "ctacctcatgaagatcctcaccgagcgcggctacagcttcaccaccacggccgagcgggaaatcgtgcgt" \
-          "gacattaaggagaagctgtgctacgtcgccctggacttcgagcaagagatggccacggctgcttccagct" \
-          "cctccctggagaagagctacgagctgcctgacggccaggtcatcaccattggcaatgagcggttccgctg" \
-          "ccctgaggcactcttccagccttccttcctgggcatggagtcctgtggcatccacgaaactaccttcaac" \
-          "tccatcatgaagtgtgacgtggacatccgcaaagacctgtacgccaacacagtgctgtctggcggcacca" \
-          "ccatgtaccctggcattgccgacaggatgcagaaggagatcactgccctggcacccagcacaatgaagat" \
-          "caagatcattgctcctcctgagcgcaagtactccgtgtggatcggcggctccatcctggcctcgctgtcc" \
-          "accttccagcagatgtggatcagcaagcaggagtatgacgagtccggcccctccatcgtccaccgcaaat" \
-          "gcttctag"
-    Peptide = "MDDDIAALVVDNGSGMCKAGFAGDDAPRAVFPSIVGRPRHQGVMVGMGQKDSYVGDEAQSKRGILTL" \
-              "KYPIEHGIVTNWDDMEKIWHHTFYNELRVAPEEHPVLLTEAPLNPKANREKMTQIMFETFNTPAMYVAIQ" \
-              "AVLSLYASGRTTGIVMDSGDGVTHTVPIYEGYALPHAILRLDLAGRDLTDYLMKILTERGYSFTTTAERE" \
-              "IVRDIKEKLCYVALDFEQEMATAASSSSLEKSYELPDGQVITIGNERFRCPEALFQPSFLGMESCGIHET" \
-              "TFNSIMKCDVDIRKDLYANTVLSGGTTMYPGIADRMQKEITALAPSTMKIKIIAPPERKYSVWIGGSILA" \
-              "SLSTFQQMWISKQEYDESGPSIVHRKCF"
+from typing import List, Optional, Union
 
 
 ############################### About utils ##################################
-
 SYMBOL = {
         "printAlign": ("┃", "•", "━")  # replace "| · -" or other fixed width character
 }
@@ -52,7 +26,7 @@ TABLE = {
         "UUA": "L", "UUC": "F", "UUG": "L", "UUU": "F"
 }
 
-def setStartCoden(coden = None):
+def setStartCoden(coden:Optional[Union[str, List[str]]] = None):
     global START_CODON
 
     if not coden:

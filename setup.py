@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from bioseq import __version__
 
 module1 = Extension(
@@ -34,11 +34,16 @@ setup(
                 'Programming Language :: Python :: 3.8',
               ],
         keywords=["biology", "analysis"],
-        packages = ['bioseq'],     # or find_packages(exclude=["*.tests", "*.tests.*"...])
+        packages = find_packages(),     # or find_packages(exclude=["*.tests", "*.tests.*"...])
         ext_modules=[module1],
+        package_data={
+            "bioseq": ["algorithm/*.h"]
+        },
+        # exclude_package_data={},
         include_package_data=False,
 )
 
+# reference https://setuptools.pypa.io/en/latest/userguide/datafiles.html
 # reference https://docs.python.org/zh-cn/3.8/distutils/apiref.html#distutils.core.setup
 # reference https://packaging.python.org/tutorials/packaging-projects/#packaging-your-project
 # 发布方法

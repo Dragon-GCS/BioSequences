@@ -14,7 +14,7 @@ class Sequence:
     _composition: Dict[str, int]
     _weight: float
 
-    def __init__(self, seq: str = "", info:str = ""):
+    def __init__(self, seq: str = "", info: str = ""):
         self._seq = seq.upper()
         self.info = info
         self.reset_cache()
@@ -30,6 +30,7 @@ class Sequence:
     def composition(self) -> Dict[str, int]:
         """
         Analysis the composition of sequence
+
         Returns:
             composition: Dict of each element's appearance's times
         """
@@ -54,6 +55,7 @@ class Sequence:
     def weight(self) -> float:
         """
         Calculate the molecular Weight
+
         Returns:
             weight: Sequence's Mole Weight in Daltons
         """
@@ -69,6 +71,7 @@ class Sequence:
             -> Tuple[str, str, float]:
         """
         Align two sequence
+
         Args:
             subject: Sequence to align
             mode: 1 - Use Needleman-Wunsch to global alignment
@@ -102,6 +105,7 @@ class Sequence:
     def find(self, target: Union[str, "Sequence"]) -> List[int]:
         """
         Find the target sequence in sequence and return the position
+
         Returns:
             All position of target appearance in self.sequence
         """
@@ -118,6 +122,7 @@ class Sequence:
                  target: Union[str, "Sequence"]) -> str:
         """
         Modify the sequence, reset the cached property.
+
         Args:
             position: char, index(s) to be mutation
             target: the target char of mutation
@@ -162,19 +167,19 @@ class Sequence:
 
     def toDNA(self) -> "DNA":
         """
-        Convert Sequence to a DNA sequence
+        Convert Sequence type to DNA
         """
         return DNA(self.seq, self.info)
 
     def toRNA(self) -> "RNA":
         """
-        Convert Sequence to a RNA sequence
+        Convert Sequence type to RNA
         """
         return DNA(self.seq, self.info)
 
     def toPeptide(self) -> "Peptide":
         """
-        Convert Sequence to a Peptide
+        Convert Sequence type to Peptide
         """
         return Peptide(self.seq, self.info)
 
@@ -283,6 +288,7 @@ class Peptide(Sequence):
         Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
         Each aa's score is the average score of all aa in window_size.
         So part of Amino Acid at begin and end don't have score
+
         Args:
             window_size: the number for calculate averge hydropathy value
             show_img: whether to draw the result
@@ -327,13 +333,14 @@ class Peptide(Sequence):
 
 T = TypeVar("T", "RNA", "DNA")
 
+
 class RNA(Sequence):
     _GC: float
     orf: List[str]
     peptide: List[Peptide]
 
     def reset_cache(self):
-        self._GC, self.orf = 0., []
+        self._GC, self.orf, self.peptide = 0., [], []
         super().reset_cache()
 
     def complement(self):
@@ -380,6 +387,7 @@ class RNA(Sequence):
                replace: bool = False) -> List[str]:
         """
         Find the Open Reading Frame in sequence and save in self.orf
+
         Args:
             multi: Return all Orf if true else only the longest
             replace: Replace origin sequence with the longest Orf
@@ -406,6 +414,7 @@ class RNA(Sequence):
     def transcript(self, filtered: bool) -> List[Peptide]:
         """
         Transcript the sequence to peptide, the result will save in self.peptide
+
         Args:
             filtered:  Return all product or the longest
         Returns:
@@ -443,5 +452,10 @@ class DNA(RNA):
             self._translate = RNA(self._seq.replace("T", "U"))
         return self._translate
 
+    def getOrf(self, multi: bool = False, replace: bool = False) -> List[str]:
+        self.orf = self.translate().getOrf(multi, replace)
+        return self.orf
+
     def transcript(self, filtered: bool = True) -> List[Peptide]:
-        return self.translate().transcript(filtered)
+        self.peptide = self.translate().transcript(filtered)
+        return self.peptide

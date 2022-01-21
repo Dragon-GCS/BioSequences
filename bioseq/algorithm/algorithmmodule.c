@@ -12,7 +12,7 @@ algorithm_NeedlemanWunsch(PyObject *self, PyObject *args)
     float gap_open;
     float gap_extend;
 
-    if (!PyArg_ParseTuple(args, "sspfff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
+    if (!PyArg_ParseTuple(args, "ssffff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);
@@ -38,7 +38,7 @@ algorithm_SmithWaterman(PyObject *self, PyObject *args)
     float gap_open;
     float gap_extend;
 
-    if (!PyArg_ParseTuple(args, "sspfff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
+    if (!PyArg_ParseTuple(args, "ssffff", &query, &subject, &match, &mismatch, &gap_open, &gap_extend))
         Py_RETURN_NONE;
 
     int size = strlen(query) + strlen(subject);

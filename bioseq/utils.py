@@ -51,8 +51,8 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
     try:
         raw_info: List[str] = urlopen(
             EUTILS_URL + urlencode(EUTILS_POST)).read().decode().split("\n")
-        sequence._seq, sequence.info = "".join(
-            raw_info[1:]), raw_info[0].lstrip(">")
+        sequence._seq = "".join(raw_info[1:])
+        sequence.info =  raw_info[0].lstrip(">")
     except HTTPError as e:
         print(e)
     finally:

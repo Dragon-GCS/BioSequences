@@ -1,4 +1,0 @@
-include *.md
-include bioseq/algorithm/*.h
-
-
