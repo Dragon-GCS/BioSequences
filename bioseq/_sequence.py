@@ -1,8 +1,8 @@
 import re
 
 from collections import Counter
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, TypeVar, Union, Iterable
+from abc import abstractmethod
+from typing import Dict, List, Optional, Tuple, TypeVar, Union
 
 from bioseq import config, algorithm
 from bioseq.config import AlignmentConfig
@@ -197,7 +197,7 @@ class Sequence:
             return self.__class__(self._seq + s._seq)
         else:
             raise TypeError(
-                f"Only str or {self.__class__.__name__} can be added to {self.__class__.__name__}")
+                f"Expect str or {self.__class__.__name__} add with {self.__class__.__name__}, not {s.__class__.__name__}")
 
     def __radd__(self, s: Union[str, "Sequence"]) -> "Sequence":
         if isinstance(s, str):
@@ -206,7 +206,7 @@ class Sequence:
             return self.__class__(s._seq + self._seq)
         else:
             raise TypeError(
-                f"Only str or {self.__class__.__name__} can add {self.__class__.__name__}")
+                f"Expect str or {self.__class__.__name__} add with {self.__class__.__name__}, not {s.__class__.__name__}")
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, str):
@@ -215,7 +215,7 @@ class Sequence:
             return self._seq == o._seq
         else:
             raise TypeError(
-                f"Only str or {self.__class__.__name__} can compare to {self.__class__.__name__}")
+                f"Expect str or {self.__class__.__name__} compare to {self.__class__.__name__}, not {o.__class__.__name__}")
 
     def __getitem__(self, index: int) -> str:
         return self._seq[index]
@@ -383,54 +383,59 @@ class RNA(Sequence):
         return self.__class__(self._seq[::-1])
 
     def getOrf(self,
-               multi: bool = False,
+               topn: int = 1,
                replace: bool = False) -> List[str]:
         """
         Find the Open Reading Frame in sequence and save in self.orf
 
         Args:
-            multi: Return all Orf if true else only the longest
+            topn: the num of orfs, sorted by length of each orf, default is 1
             replace: Replace origin sequence with the longest Orf
         Returns:
             Orf: Sequence's Orf got by search
         """
         # Traverse all Orf Frame
-        for i in range(self.length - 5):
-            if self._seq[i:i + 3] in config.START_CODON:
-                # when start coden exits, from end start finding end coden
-                end = i + (self.length - i) // 3 * 3
-                for j in range(end, i + 5, -3):
-                    if config.TABLE.get(self._seq[j - 3: j]) == "*":
-                        orf = self._seq[i:j]
-                        self.orf.append(orf)
+        i, step  = 0, 1
+        starts: List[int] = []
+        end_points: List[Tuple[int, int]] = []
 
-                        if not multi:
-                            if replace:
-                                self._seq = orf
-                            return self.orf  # Stop search if only request longest orf
+        while i < self.length:
+            if self._seq[i: i+3] in config.START_CODON:
+                starts.append(i)
+                step = 3
+
+            i += step
+
+            if config.TABLE.get(self._seq[i: i+3]) == "*":
+                end_points.extend([(s, i + 3) for s in starts])
+                starts = []
+                step = 1
+
+        end_points = sorted(end_points, key=lambda se: se[1] - se[0], reverse=True)
+        self.orf = [self._seq[se[0]: se[1]] for se in end_points[:topn]]
+
+        if replace:
+            self._seq = self.orf[0]
 
         return self.orf
 
-    def transcript(self, filtered: bool) -> List[Peptide]:
+    def transcript(self, topn: int = 1) -> List[Peptide]:
         """
         Transcript the sequence to peptide, the result will save in self.peptide
 
         Args:
-            filtered:  Return all product or the longest
+            topn:  the num of transcipts, sorted by length of each transcipt, default is 1
         Returns:
             peptide: List of transcript product
         """
-        orf = self.orf if self.orf else self.getOrf(multi=not filter)
+        orf = self.orf if self.orf else self.getOrf(topn=topn)
         self.peptide = []
         for frame in orf:
-            peptide = ""
-            for i in range(0, len(frame), 3):
-                peptide += config.TABLE.get(frame[i:i + 3],
-                                            config.SYMBOL["printAlign"][1])
-            self.peptide.append(Peptide(peptide[:-1]))
+            peptide = "".join([config.TABLE.get(frame[i:i + 3],
+                                                config.SYMBOL["printAlign"][1])
+                               for i in range(0, len(frame), 3)])
 
-            if filtered:
-                return self.peptide
+            self.peptide.append(Peptide(peptide[:-1]))
 
         return self.peptide
 
@@ -452,10 +457,10 @@ class DNA(RNA):
             self._translate = RNA(self._seq.replace("T", "U"))
         return self._translate
 
-    def getOrf(self, multi: bool = False, replace: bool = False) -> List[str]:
-        self.orf = self.translate().getOrf(multi, replace)
+    def getOrf(self, topn: int = 1, replace: bool = False) -> List[str]:
+        self.orf = self.translate().getOrf(topn, replace)
         return self.orf
 
-    def transcript(self, filtered: bool = True) -> List[Peptide]:
-        self.peptide = self.translate().transcript(filtered)
+    def transcript(self, topn: int = 1) -> List[Peptide]:
+        self.peptide = self.translate().transcript(topn)
         return self.peptide

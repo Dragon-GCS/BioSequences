@@ -37,7 +37,7 @@ setup(
         packages = find_packages(),     # or find_packages(exclude=["*.tests", "*.tests.*"...])
         ext_modules=[module1],
         package_data={
-            "bioseq": ["algorithm/*.h"]
+            "bioseq": ["algorithm/*.h", "*.pyi"]
         },
         # exclude_package_data={},
         include_package_data=False,
