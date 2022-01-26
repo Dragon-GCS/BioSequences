@@ -1,7 +1,6 @@
 import re
 
 from collections import Counter
-from abc import abstractmethod
 from typing import Dict, List, Optional, Tuple, TypeVar, Union
 
 from bioseq import config, algorithm
@@ -183,7 +182,6 @@ class Sequence:
         """
         return Peptide(self.seq, self.info)
 
-    @abstractmethod
     def _print(self) -> str:
         """
         Output sequence info
@@ -395,7 +393,7 @@ class RNA(Sequence):
             Orf: Sequence's Orf got by search
         """
         # Traverse all Orf Frame
-        i, step  = 0, 1
+        i, step = 0, 1
         starts: List[int] = []
         end_points: List[Tuple[int, int]] = []
 
@@ -411,7 +409,8 @@ class RNA(Sequence):
                 starts = []
                 step = 1
 
-        end_points = sorted(end_points, key=lambda se: se[1] - se[0], reverse=True)
+        end_points = sorted(
+            end_points, key=lambda se: se[1] - se[0], reverse=True)
         self.orf = [self._seq[se[0]: se[1]] for se in end_points[:topn]]
 
         if replace:

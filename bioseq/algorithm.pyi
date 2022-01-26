@@ -9,6 +9,7 @@ def NeedlemanWunsch(query: str,
                     gap_extend: float) -> Tuple[str, str, float]:
     ...
 
+
 def SmithWaterman(query: str,
                   subject: str,
                   match: float,

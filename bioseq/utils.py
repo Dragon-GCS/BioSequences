@@ -8,7 +8,7 @@ from bioseq import DNA, RNA, Peptide, Sequence
 
 EUTILS_POST = {
     "db": "",           # 数据库
-    "rettype": "fasta", # 数据类型
+    "rettype": "fasta",  # 数据类型
     "retmode": "text",  # 返回类型
     "id": "",           # uid
 }
@@ -52,7 +52,7 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
         raw_info: List[str] = urlopen(
             EUTILS_URL + urlencode(EUTILS_POST)).read().decode().split("\n")
         sequence._seq = "".join(raw_info[1:])
-        sequence.info =  raw_info[0].lstrip(">")
+        sequence.info = raw_info[0].lstrip(">")
     except HTTPError as e:
         print(e)
     finally:
@@ -69,14 +69,16 @@ def loadFasta(filename: str) -> Iterable[Sequence]:
         seq_list: the list of sequences
         seq_ids: the list of sequence's ids
     """
-    seq = ""
-    info = ""
+    seq: str = ""
+    info: str = ""
 
     with open(filename) as f:
         while line := f.readline():
-            # process the last line
-            if not line.strip():
+            # process the blank line
+            if not line.strip() and seq:
                 yield Sequence(seq, info)
+                seq = ""    # reset seq
+                continue
 
             if line.startswith(">"):
                 # yield previous sequence
@@ -87,6 +89,7 @@ def loadFasta(filename: str) -> Iterable[Sequence]:
             else:
                 seq += line.strip()
 
+    if seq:
         yield Sequence(seq, info)
 
 
