@@ -6,14 +6,6 @@ from urllib.error import HTTPError
 from bioseq.config import SYMBOL
 from bioseq import DNA, RNA, Peptide, Sequence
 
-EUTILS_POST = {
-    "db": "",           # 数据库
-    "rettype": "fasta",  # 数据类型
-    "retmode": "text",  # 返回类型
-    "id": "",           # uid
-}
-EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
-
 
 def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
     """
@@ -34,6 +26,14 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
     Returns:
         A sequence object corresponding to UID
     """
+    EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
+    EUTILS_POST = {
+            "db": "",           # 数据库
+            "rettype": "fasta",  # 数据类型
+            "retmode": "text",  # 返回类型
+            "id": "",           # uid
+        }
+
     # check uid
     if uid[:3] in ["AP_", "NP_", "YP_", "XP_", "WP_"]:
         sequence = Peptide()
