@@ -1,4 +1,9 @@
-from typing import Iterable, List, Union
+import json
+
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import cpu_count
+from typing import Dict, Iterator, List, Literal, Tuple, Union, overload
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -7,7 +12,63 @@ from bioseq.config import SYMBOL
 from bioseq import DNA, RNA, Peptide, Sequence
 
 
+# TODO: Merge fetch function
+@overload
+def fetchENS(uid: str) -> DNA:
+    ...
+
+
+@overload
+def fetchENS(uid: List[str]) -> List[DNA]:
+    ...
+
+
+def fetchENS(uid):
+    """
+    Fetch sequence corresponding to UID from Enseble REST api.
+
+    Args:
+        uid: One or list of ENS's unique id
+    Returns:
+        One of list of DNA
+    """
+    ENS_DATABASE_URL = "https://rest.ensembl.org/sequence/id/{}?content-type=text/plain"
+
+    def fetch(uid):
+        raw_info = ""
+        try:
+            raw_info = urlopen(ENS_DATABASE_URL.format(uid)).read().decode()
+            error = json.loads(raw_info)
+        except HTTPError as e:
+            print(e)
+        except json.JSONDecodeError:
+            pass
+        else:
+            print(error)
+            raw_info = ""
+        return DNA(raw_info, uid)
+
+    if isinstance(uid, list):
+        num_worker = min(len(uid), 5 * cpu_count())
+        with ThreadPoolExecutor(num_worker) as executor:
+            return list(executor.map(fetch, uid))
+    elif isinstance(uid, str):
+        return fetch(uid)
+    else:
+        raise ValueError(f"{uid} is not a str or list of str")
+
+
+@overload
 def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
+    ...
+
+
+@overload
+def fetchNCBI(uid: List[str]) -> List[Sequence]:
+    ...
+
+
+def fetchNCBI(uid):
     """
     Fetch sequence corresponding to UID from NCBI E-utilities. Only support RNA, mRNA(DNA), Protein.
 
@@ -22,75 +83,129 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
     WP_(Protein):   Non-redundant across multiple strains and species
 
     Args:
-        uid: NCBI's unique id
+        uid: One or list of NCBI's unique id
     Returns:
-        A sequence object corresponding to UID
+        If uid is a list, the return is a list of Sequence(excluded the uid not found data on NCBI)
+        without ensure sequence's type,else the return is a Sequence corresponding to UID.
     """
     EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
     EUTILS_POST = {
-            "db": "",           # 数据库
-            "rettype": "fasta",  # 数据类型
-            "retmode": "text",  # 返回类型
-            "id": "",           # uid
-        }
+        "db": "",               # database
+        "rettype": "fasta",     # text type
+        "retmode": "text",      # data type
+        "id": "",               # uid
+    }
 
-    # check uid
-    if uid[:3] in ["AP_", "NP_", "YP_", "XP_", "WP_"]:
-        sequence = Peptide()
-        EUTILS_POST["db"] = "protein"
-    elif uid[:3] in ["NM_", "XM_"]:
-        EUTILS_POST["db"] = "nuccore"
-        sequence = DNA()
-    elif uid[:3] in ["NR_", "XR_"]:
-        EUTILS_POST["db"] = "nuccore"
-        sequence = RNA()
+    def checkUID(uid: str) -> Tuple[str, str]:
+        """
+        Check whether the uid is valid
+        Args:
+            uid: uid
+        Returns:
+            returns: ncbi_db_name, Sequence's type corresponding to uid
+        """
+        if uid[:3] in ["AP_", "NP_", "YP_", "XP_", "WP_"]:
+            return "protein", "Peptide"
+        elif uid[:3] in ["NM_", "XM_"]:
+            return "nuccore", "DNA"
+        elif uid[:3] in ["NR_", "XR_"]:
+            return "nuccore", "RNA"
+        else:
+            raise ValueError(f"{uid} is not a support uid")
+
+    def fetch(data: Dict) -> List[Sequence]:
+        try:
+            raw_info = urlopen(
+                EUTILS_URL + urlencode(data)
+            ).read().decode()
+        except HTTPError as e:
+            print(e)
+            return [Sequence()]
+        else:
+            return parseFasta(raw_info)
+
+    if isinstance(uid, list):
+        uids = defaultdict(list)
+        for id in uid:
+            db, seq_type = checkUID(id)
+            uids[db].append((id, seq_type))
+        result = []
+        for db, seqs in uids.items():
+            EUTILS_POST["db"] = db
+            EUTILS_POST["id"] = ",".join([info[0] for info in seqs])
+            result.extend(fetch(EUTILS_POST))
+        return result
+    elif isinstance(uid, str):
+        EUTILS_POST["id"] = uid
+        EUTILS_POST["db"], seq_type = checkUID(uid)
+        sequence = fetch(EUTILS_POST)[0]
+        return getattr(sequence, f"to{seq_type}")()
     else:
-        raise ValueError(f"{uid} is not a support uid")
-
-    EUTILS_POST["id"] = uid
-    try:
-        raw_info: List[str] = urlopen(
-            EUTILS_URL + urlencode(EUTILS_POST)).read().decode().split("\n")
-        sequence._seq = "".join(raw_info[1:])
-        sequence.info = raw_info[0].lstrip(">")
-    except HTTPError as e:
-        print(e)
-    finally:
-        return sequence
+        raise ValueError(f"{uid} is not a str or list of str")
 
 
-def loadFasta(filename: str) -> Iterable[Sequence]:
+def parseFasta(fasta_text: str) -> List[Sequence]:
+    """
+    Parse a string in FASTA format
+
+    Args:
+        fasta_text: string to be parsed
+    Returns:
+        A list[Sequence] of parsing result
+    """
+    return [Sequence("".join((text := fasta.split("\n"))[1:]), text[0])
+            for fasta in fasta_text.split(">")
+            if fasta.strip()]
+
+
+@overload
+def loadFasta(filename: str) -> List[Sequence]:
+    ...
+
+
+@overload
+def loadFasta(filename: str, iterator: Literal[True]) -> Iterator[Sequence]:
+    ...
+
+
+def loadFasta(filename, iterator=False):
     """
     Read fasta file
 
     Args:
-        filename: the fasta file's name
+        filename: the fasta file's name.
+        iterator: Set to True as reading a large file, it will return a iterator.
     Returns:
-        seq_list: the list of sequences
-        seq_ids: the list of sequence's ids
+        A Iterator(when iterator=True) or a List of Sequence.
     """
-    seq: str = ""
-    info: str = ""
-
-    with open(filename) as f:
-        while line := f.readline():
-            # process the blank line
-            if not line.strip() and seq:
-                yield Sequence(seq, info)
-                seq = ""    # reset seq
-                continue
-
-            if line.startswith(">"):
-                # yield previous sequence
-                if seq:
+    def iter_parse(filename: str) -> Iterator[Sequence]:
+        seq = ""
+        info = ""
+        with open(filename, encoding="utf8") as f:
+            while line := f.readline():
+                # process the blank line
+                if not line.strip() and seq:
                     yield Sequence(seq, info)
                     seq = ""    # reset seq
-                info = line[1:].strip()
-            else:
-                seq += line.strip()
+                    continue
 
-    if seq:
-        yield Sequence(seq, info)
+                if line.startswith(">"):
+                    # yield previous sequence
+                    if seq:
+                        yield Sequence(seq, info)
+                        seq = ""    # reset seq
+                    info = line[1:].strip()
+                else:
+                    seq += line.strip()
+
+            if seq:
+                yield Sequence(seq, info)
+
+    if iterator:
+        return iter_parse(filename)
+    else:
+        with open(filename, encoding="utf8") as f:
+            return parseFasta(f.read())
 
 
 def printAlign(

@@ -21,7 +21,7 @@
 
 # 主要功能
 
-## bioseq.Sequence(seq="", info="")
+## `bioseq.Sequence(seq="", info="")`
 
 * RNA，DNA和Peptide都基于此抽象类，因此Sequence中的属性和方法为所有序列对象公有的属性和方法。
 * 相同的序列对象可以直接与同类对象或字符串进行拼接，比较。
@@ -68,29 +68,29 @@
 
 #### `align(subject, mode=1)`
 
-    ```python
-    subject(str | Sequence)：比对对象
-    mode(int)：
-        1 - 使用Needleman-Wunsch进行全局比对
-        2 - 使用Smith-Waterman进行局部比对
-    ```
+```python
+subject(str | Sequence)：比对对象
+mode(int)：
+    1 - 使用Needleman-Wunsch进行全局比对
+    2 - 使用Smith-Waterman进行局部比对
+```
 
 #### `find(target)`
 
 在序列中查找目标序列并返回所有匹配的起始位置
 
-    ```python
-    target(str| Sequence)：目标序列
-    ```
+```python
+target(str| Sequence)：目标序列
+```
 
 #### `mutation(position, target)`
 
 改变序列信息
 
-    ```python
-    position(str | int | List[int])：需要修改的单个字符或者是需要修改的字符串起始位置。
-    target(str| Sequence)：目标序列
-    ```
+```python
+position(str | int | List[int])：需要修改的单个字符或者是需要修改的字符串起始位置。
+target(str| Sequence)：目标序列
+```
 
 #### `toDNA()`, `toRNA()`, `toPeptide()`
 
@@ -136,18 +136,18 @@
 
 获取序列上的ORF
 
-    ```python
-    topn(int)：查找序列中的所有orf，并返回最长的topn个读码框
-    replace(bool)： 当multi=False时生效，是否将最长的orf替换为原序列
-    ```
+```python
+topn(int)：查找序列中的所有orf，并返回最长的topn个读码框
+replace(bool)： 当multi=False时生效，是否将最长的orf替换为原序列
+```
 
 #### `transcript(topn=1)`
 
 将序列翻译为肽链
 
-    ```python
-    topn(bool)：根据读码框返回长度最长的topn个翻译产物。翻译产物均为Peptide对象。
-    ```
+```python
+topn(bool)：根据读码框返回长度最长的topn个翻译产物。翻译产物均为Peptide对象。
+```
 
 ## `bioseq.DNA`
 
@@ -163,9 +163,9 @@
 
 将序列翻译为肽链
 
-    ```python
-    topn(bool)：根据读码框返回长度最长的topn个翻译产物。翻译产物均为Peptide对象。
-    ```
+```python
+topn(bool)：根据读码框返回长度最长的topn个翻译产物。翻译产物均为Peptide对象。
+```
 
 ## `bioseq.Peptide`
 
@@ -183,18 +183,18 @@
 
 基于EMBOSS数据库中氨基酸的pK值，计算肽链在某一pH下所带的电荷量
 
-    ```python
-    pH(float): 溶液的pH值
-    ```
+```python
+pH(float): 溶液的pH值
+```
 
 #### `getHphob(window_size=9, show_img=True)`
 
 基于Doolittle(1982)的氨基酸疏水性数据，计算肽链的疏水性，疏水性
 
-    ```python
-    window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
-    show_img：绘制疏水性结果，需要matplotlib
-    ```
+```python
+window_size(int)：某一氨基酸的疏水性为window_size内该氨基酸位于window中心时的所有氨基酸疏水性的平均值
+show_img：绘制疏水性结果，需要matplotlib
+```
 
 ## `bioseq.config`
 
@@ -204,35 +204,35 @@
 
 修改序列比对时的评分规则，需要在比对前进行设置
 
-    ```python
-    match(int) ：匹配得分(>0)
-    mismath(int)：错配得分(<0)
-    gap_open(int)：开口得分(<0)
-    gap_extend(int)：开口延长得分(<0) 
+```python
+match(int) ：匹配得分(>0)
+mismath(int)：错配得分(<0)
+gap_open(int)：开口得分(<0)
+gap_extend(int)：开口延长得分(<0) 
 
-    d1 = DNA("ATCTCGC")
-    d2 = DNA("ATCCC")
+d1 = DNA("ATCTCGC")
+d2 = DNA("ATCCC")
 
-    print(d1.align(d2)) #('ATCTCGC', 'ATC-C-C', 4.0)
-    setAlignPara(5)
-    print(d1.align(d2)) #('ATCTCGC', 'A--TCCC', -0.5)
-    ```
+print(d1.align(d2)) #('ATCTCGC', 'ATC-C-C', 4.0)
+setAlignPara(5)
+print(d1.align(d2)) #('ATCTCGC', 'A--TCCC', -0.5)
+```
 
 #### `setStartCoden(coden = None)`
 
 修改核酸序列转录时需要的起始密码子，为传入coden则将密码子初始化为*"AUG"*
 
-    ```python
-    coden(str | List(str))：密码子会在coden中寻找，如有匹配则开始进行转录
+```python
+coden(str | List(str))：密码子会在coden中寻找，如有匹配则开始进行转录
 
-    d1 = DNA("ATCATCTCAGCATGAC")
+d1 = DNA("ATCATCTCAGCATGAC")
 
-    print(d1.transcript(filtered=False)) # []
-    setStartCoden(["AUC"])
-    print(d1.transcript(filtered=False)) # [N-IISA-C, N-ISA-C]
-    ```
+print(d1.transcript(filtered=False)) # []
+setStartCoden(["AUC"])
+print(d1.transcript(filtered=False)) # [N-IISA-C, N-ISA-C]
+```
 
-## bioseq.utils
+## `bioseq.utils`
 
 工具
 
@@ -240,43 +240,66 @@
 
 在命令行中按格式输出两个比对后的序列， 可在config.SYMBOL中修改显示的符号
 
-    ```python
-    spacing(int)：序列显示间隔
-    line_width(int)：每行显示的字符数
-    show_sequence(bool)：是否显示序列
+```python
+spacing(int)：序列显示间隔
+line_width(int)：每行显示的字符数
+show_sequence(bool)：是否显示序列
 
-    d1 = DNA("ATCATCTCAGCATGAC")
-    d2 = DNA("ATCATCGCATGAC")
+d1 = DNA("ATCATCTCAGCATGAC")
+d2 = DNA("ATCATCGCATGAC")
 
-    seq1, seq2 = d1.align(d2)
-    printAlign(d1, d2)
-    #    1 ATCATCTCAG CAT
-    #      ┃┃┃┃┃┃•┃┃• •┃•
-    #    1 ATCATCGCAT GAC
-    printAlign(d1, d2, spacing=3, line_width=10, show_seq=False)
-    #    1 ┃┃┃ ┃┃┃ •┃┃ •
-    # 
-    #   11 •┃• 
-    ```
+seq1, seq2 = d1.align(d2)
+printAlign(d1, d2)
+#    1 ATCATCTCAG CAT
+#      ┃┃┃┃┃┃•┃┃• •┃•
+#    1 ATCATCGCAT GAC
+printAlign(d1, d2, spacing=3, line_width=10, show_seq=False)
+#    1 ┃┃┃ ┃┃┃ •┃┃ •
+# 
+#   11 •┃• 
+```
 
-#### `loadFasta(filename)`
+#### `parseFasta(fasta_text: str)`
 
-读取fasta文件，并返回所有读取到的(序列列表，序列名列表)**Todo：加入更多解析格式**
+pasre a string in fasta format
 
-#### fetchNCBI(uid)
+#### `loadFasta(filename, iterator=False)`
 
-    ```python
-    uid(str): NCBI中序列的唯一编号，如 NC_XXXX、NM_XXXX等，仅限于DNA(mRNA)、RNA和多肽序列，返回对应的序列对象。
-    ```
+读取fasta文件，并返回所有读取到的(序列列表，序列名列表)
+
+```python
+filename(str): 文件名
+itertor(bool): 用于读取大文件，设置为True返回迭代器
+```
+
+#### `fetchNCBI(uid)`
+
+```python
+uid(str|List[str]): NCBI中序列的唯一编号，如 NC_XXXX、NM_XXXX等，仅限于DNA(mRNA)、RNA和多肽序列，返回对应的序列对象。支持批量获取，返回Sequence列表，顺序与传入的参数顺序不一致，且不包含NCBI中未获取到的数据。可以根据Sequence.info自行排序。
+```
 
 > NCBI RefSeq's document: <https://www.ncbi.nlm.nih.gov/books/NBK21091/table/ch18.T.refseq_accession_numbers_and_mole>
 > some NCBI E-utilities's api: <https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/>
 
+#### `fetchENS(uid)`
+
+```python
+uid(str|List[str]): ENS编号。支持批量获取，返回Sequence列表，顺序与传入的参数顺序一致。
+```
+> Ensemble REST Api: <https://rest.ensembl.org/documentation/info/sequence_id>
+
 ## Change Log
+
+Version: **1.1.4**
+
+* add: `bioseq.utils.fetchENS()`
+* add: `bioseq.utils.parseFasta()`
+* add: Add iterator option to `bioseq.utils.loadFasta()`
+* add: multi-uids fetch support for `bioseq.utils.fetchNCBI()`
 
 Version: **1.1.3**
 
-fix: Wrong results from `bioseq.utils.loadFasta()`
+* fix: Wrong results from `bioseq.utils.loadFasta()`
 
 Version: **1.1.2**
 
