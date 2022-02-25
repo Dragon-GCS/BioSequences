@@ -186,6 +186,8 @@ class Sequence:
         """
         Output sequence info
         """
+        if self._seq and len(self._seq) > 30:
+            return f"{self._seq[:10]}...{self._seq[-10:]}"
         return self._seq
 
     def __add__(self, s: Union[str, "Sequence"]) -> "Sequence":

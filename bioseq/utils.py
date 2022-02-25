@@ -48,11 +48,11 @@ def fetchENS(uid):
                 break
         return DNA(raw_info, uid)
 
-    if isinstance(uid, Iterable):
+    if isinstance(uid, str):
+        return fetch(uid)
+    elif isinstance(uid, Iterable):
         with ThreadPoolExecutor(5) as executor:
             return list(executor.map(fetch, uid))
-    elif isinstance(uid, str):
-        return fetch(uid)
     else:
         raise ValueError(f"{uid} is not a str or list of str")
 
