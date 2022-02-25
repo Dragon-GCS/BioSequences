@@ -1,9 +1,6 @@
-import json
-
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import cpu_count
-from typing import Dict, Iterator, List, Literal, Tuple, Union, overload
+from typing import Dict, Iterator, Iterable, List, Literal, Tuple, Union, overload
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -19,7 +16,7 @@ def fetchENS(uid: str) -> DNA:
 
 
 @overload
-def fetchENS(uid: List[str]) -> List[DNA]:
+def fetchENS(uid: Iterable[str]) -> List[DNA]:
     ...
 
 
@@ -36,21 +33,23 @@ def fetchENS(uid):
 
     def fetch(uid):
         raw_info = ""
-        try:
-            raw_info = urlopen(ENS_DATABASE_URL.format(uid)).read().decode()
-            error = json.loads(raw_info)
-        except HTTPError as e:
-            print(e)
-        except json.JSONDecodeError:
-            pass
-        else:
-            print(error)
-            raw_info = ""
+        for _ in range(3):
+            try:
+                raw_info = urlopen(ENS_DATABASE_URL.format(uid)).read().decode()
+                break
+            except HTTPError as e:
+                if e.code == 400:
+                    print(f"{uid} not found")
+                    break
+                else:
+                    print(f"{uid} retry: {e}.")
+            except Exception as e:
+                print(e)
+                break
         return DNA(raw_info, uid)
 
-    if isinstance(uid, list):
-        num_worker = min(len(uid), 5 * cpu_count())
-        with ThreadPoolExecutor(num_worker) as executor:
+    if isinstance(uid, Iterable):
+        with ThreadPoolExecutor(5) as executor:
             return list(executor.map(fetch, uid))
     elif isinstance(uid, str):
         return fetch(uid)
@@ -64,7 +63,7 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
 
 
 @overload
-def fetchNCBI(uid: List[str]) -> List[Sequence]:
+def fetchNCBI(uid: Iterable[str]) -> List[Sequence]:
     ...
 
 
@@ -124,7 +123,7 @@ def fetchNCBI(uid):
         else:
             return parseFasta(raw_info)
 
-    if isinstance(uid, list):
+    if isinstance(uid, Iterable):
         uids = defaultdict(list)
         for id in uid:
             db, seq_type = checkUID(id)
