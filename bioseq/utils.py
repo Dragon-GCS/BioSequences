@@ -123,7 +123,12 @@ def fetchNCBI(uid):
         else:
             return parseFasta(raw_info)
 
-    if isinstance(uid, Iterable):
+    if isinstance(uid, str):
+        EUTILS_POST["id"] = uid
+        EUTILS_POST["db"], seq_type = checkUID(uid)
+        sequence = fetch(EUTILS_POST)[0]
+        return getattr(sequence, f"to{seq_type}")()
+    elif isinstance(uid, Iterable):
         uids = defaultdict(list)
         for id in uid:
             db, seq_type = checkUID(id)
@@ -131,14 +136,10 @@ def fetchNCBI(uid):
         result = []
         for db, seqs in uids.items():
             EUTILS_POST["db"] = db
-            EUTILS_POST["id"] = ",".join([info[0] for info in seqs])
-            result.extend(fetch(EUTILS_POST))
+            for i in range(0, len(seqs), 200):
+                EUTILS_POST["id"] = ",".join([info[0] for info in seqs[i:i + 200]])
+                result.extend(fetch(EUTILS_POST))
         return result
-    elif isinstance(uid, str):
-        EUTILS_POST["id"] = uid
-        EUTILS_POST["db"], seq_type = checkUID(uid)
-        sequence = fetch(EUTILS_POST)[0]
-        return getattr(sequence, f"to{seq_type}")()
     else:
         raise ValueError(f"{uid} is not a str or list of str")
 
