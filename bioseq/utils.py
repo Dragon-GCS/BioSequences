@@ -213,7 +213,7 @@ def printAlign(
         sequence2: str,
         spacing: int = 10,
         line_width: int = 30,
-        show_seq: bool = True) -> None:
+        show_seq: bool = True):
     """
     Print two sequence by a pretty format
 

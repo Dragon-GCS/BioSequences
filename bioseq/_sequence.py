@@ -131,12 +131,13 @@ class Sequence:
         if isinstance(target, Sequence):
             target = target._seq
 
-        elif not(target, str):
+        elif not isinstance(target, str):
             raise TypeError("Target should be str or Sequence")
 
         if isinstance(position, str):
             self._seq = self._seq.replace(position, target)
-            self.reset_cache()  # reset cached property
+            # Reset cached property related with sequence(weight, composition...)
+            self.reset_cache()
             return self._seq
 
         elif isinstance(position, int):
@@ -150,18 +151,19 @@ class Sequence:
 
         while position:
             pos = position.pop(0)
+            if not isinstance(pos, int):
+                raise TypeError("Position must be int")
+
             if pos < prev_end:
                 print(
                     f"WARNING: muation <{pos}~{pos + length}> overlaped previous mutation <{prev_end - length}~{prev_end}>")
 
-            if not isinstance(pos, int):
-                raise TypeError("Position must be int")
-
-            seq_list[pos: pos + len(target)] = target
             prev_end = pos + length
+            seq_list[pos: prev_end] = target
         self._seq = "".join(seq_list)
 
-        self.reset_cache()  # reset cached property
+        # Reset cached property related with sequence(weight, composition...)
+        self.reset_cache()
         return self._seq
 
     def toDNA(self) -> "DNA":
@@ -174,7 +176,7 @@ class Sequence:
         """
         Convert Sequence type to RNA
         """
-        return DNA(self.seq, self.info)
+        return RNA(self.seq, self.info)
 
     def toPeptide(self) -> "Peptide":
         """
