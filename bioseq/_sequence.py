@@ -75,10 +75,9 @@ class Sequence:
             subject: Sequence to align
             mode: 1 - Use Needleman-Wunsch to global alignment
                   2 - Use Smith-Waterman to partial alignment
-            return_score: whether return align score
         Returns:
-            query: Self sequence after alignmnt
-            subject: Subject sequence afer alignment
+            query: Self sequence after alignment
+            subject: Subject sequence after alignment
             score: align score if choose return_score
         """
         if isinstance(subject, self.__class__):
@@ -106,7 +105,7 @@ class Sequence:
         Find the target sequence in sequence and return the position
 
         Returns:
-            All position of target appearance in self.sequence
+            All position of target appearance in self.seq
         """
         if isinstance(target, Sequence):
             target = target._seq
@@ -156,7 +155,7 @@ class Sequence:
 
             if pos < prev_end:
                 print(
-                    f"WARNING: muation <{pos}~{pos + length}> overlaped previous mutation <{prev_end - length}~{prev_end}>")
+                    f"WARNING: mutation <{pos}~{pos + length}> overlapped previous mutation <{prev_end - length}~{prev_end}>")
 
             prev_end = pos + length
             seq_list[pos: prev_end] = target
@@ -292,7 +291,7 @@ class Peptide(Sequence):
         So part of Amino Acid at begin and end don't have score
 
         Args:
-            window_size: the number for calculate averge hydropathy value
+            window_size: the number for calculate average hydropathy value
             show_img: whether to draw the result
         Returns:
             Hphob_list: the result of peptide's Hydropathy Score
@@ -427,7 +426,7 @@ class RNA(Sequence):
         Transcript the sequence to peptide, the result will save in self.peptide
 
         Args:
-            topn:  the num of transcipts, sorted by length of each transcipt, default is 1
+            topn:  the num of transcripts, sorted by length of each transcript, default is 1
         Returns:
             peptide: List of transcript product
         """

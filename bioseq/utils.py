@@ -22,7 +22,7 @@ def fetchENS(uid: Iterable[str]) -> List[DNA]:
 
 def fetchENS(uid):
     """
-    Fetch sequence corresponding to UID from Enseble REST api.
+    Fetch sequence corresponding to UID from Ensemble REST api.
 
     Args:
         uid: One or list of ENS's unique id

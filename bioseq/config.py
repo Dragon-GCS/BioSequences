@@ -1,6 +1,5 @@
 from typing import List, Optional, Union
 
-
 ############################### About utils ##################################
 SYMBOL = {
     # replace "| · -" or other fixed width character
@@ -27,6 +26,8 @@ TABLE = {
     "UUA": "L", "UUC": "F", "UUG": "L", "UUU": "F"
 }
 
+START_CODON = ["AUG"]
+
 
 def setStartCoden(coden: Optional[Union[str, List[str]]] = None):
     global START_CODON
@@ -44,6 +45,7 @@ def setStartCoden(coden: Optional[Union[str, List[str]]] = None):
 
 
 setStartCoden()
+
 
 ################################ Align Parameter ################################
 
