@@ -27,3 +27,9 @@ python:
   install:
     - method: pip
       path: .
+    - method: pip
+      path: sphinx_copybutton
+    - method: pip
+      path: myst_parser
+    - method: pip
+      path: sphinx_rtd_theme
