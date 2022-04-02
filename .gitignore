@@ -1,9 +1,10 @@
 **/__pycache__/
-/.vscode/
-/.idea/
-/.venv/
-/build/
-/dist/
+.vscode/
+.idea/
+.venv/
+build/
+dist/
+docs/_*
 /*.egg-info/
 
 test.py

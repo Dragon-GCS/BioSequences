@@ -19,7 +19,7 @@ setup(
     description='Tools to analysis biology sequence',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license='GPL Licence',
+    license='GPL License',
     url='https://github.com/Dragon-GCS/BioSequence',
     project_urls={
         "Bug Tracker": "https://github.com/Dragon-GCS/BioSequence/issues",

@@ -1,6 +1,6 @@
 from bioseq import DNA, RNA, Peptide
 from bioseq._sequence import Sequence
-from bioseq.config import AlignmentConfig, setAlignPara, MW
+from bioseq.config import AlignmentConfig, MW
 import unittest
 
 
@@ -39,7 +39,7 @@ class TestBioseq(unittest.TestCase):
         self.assertEqual(DNA("ATCG"), DNA("ATCG"))
         self.assertEqual(DNA("ATCG") + DNA("ATCG"), DNA("ATCGATCG"))
         with self.assertRaises(TypeError):
-            DNA("ATCG") + RNA("AUCG")
+            _ = DNA("ATCG") + RNA("AUCG")
 
     def test_seq_align(self):
         seq_a = Sequence("ATCG")
@@ -61,7 +61,7 @@ class TestBioseq(unittest.TestCase):
         self.assertEqual(seq.mutation(0, "ATC"), "ATCG")
 
     def test_seq_trans(self):
-        seq = Sequence()
+        seq = Sequence("")
         self.assertIsInstance(seq.toDNA(), DNA)
         self.assertIsInstance(seq.toRNA(), RNA)
         self.assertIsInstance(seq.toPeptide(), Peptide)
@@ -75,8 +75,8 @@ class TestDNA(unittest.TestCase):
         self.assertEqual(DNA("ATCG").GC, 0.5)
 
     def test_weight(self):
-        self.assertEqual(RNA("AUCG").weight, sum(MW["RNA_MW"].values()) + 18)
-        self.assertEqual(DNA("ATCG").weight, sum(MW["DNA_MW"].values()) + 18)
+        self.assertEqual(RNA("AUCG").weight, sum(MW["RNA"].values()) - 3 * 18)
+        self.assertEqual(DNA("ATCG").weight, sum(MW["DNA"].values()) - 3 * 18)
 
 
     def test_compostion(self):
@@ -89,16 +89,12 @@ class TestDNA(unittest.TestCase):
     def test_reversed(self):
         seq = DNA("ATCG")
         self.assertEqual(seq.reversed, "GCTA")
-        seq.reverse()
-        self.assertEqual(seq, "GCTA")
 
     def test_complemented(self):
         seq = DNA("ATCG")
-        self.assertEqual(seq.complemented, "CGAT")
-        seq.complement()
-        self.assertEqual(seq, "CGAT")
+        self.assertEqual(seq.complement, "CGAT")
 
-    def test_traslate(self):
+    def test_translate(self):
         self.assertEqual(str(self.dna.translate()), str(self.dna).replace("T", "U"))
 
     def test_getOrf(self):

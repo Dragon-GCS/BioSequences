@@ -10,75 +10,85 @@ from bioseq.config import AlignmentConfig
 class Sequence:
     info: str
     _seq: str
-    _composition: Dict[str, int]
+    _composition: Dict[str, Union[int, float]]
     _weight: float
 
-    def __init__(self, seq: str = "", info: str = ""):
+    def __init__(self, seq: str, info: str = ""):
+        """Base class of all sequence type
+
+        Args:
+            seq(str): Sequence
+            info(str): Some information string about the sequence
+        """
         self._seq = seq.upper()
         self.info = info
         self.reset_cache()
 
     def reset_cache(self):
         """
-        Reset some cache property
+        Reset cached property related with sequence, called when sequence changed
         """
         self._composition = {}
         self._weight = 0.
 
     @property
-    def composition(self) -> Dict[str, int]:
-        """
-        Analysis the composition of sequence
+    def composition(self) -> Dict[str, Union[int, float]]:
+        """Analysis the composition of sequence
 
         Returns:
-            composition: Dict of each element's appearance's times
+            Dict: Each element's appearance times or percentage in sequence
         """
         if not self._composition:
             counter = dict(Counter(self._seq))
-            for key in sorted(counter):
-                self._composition[key] = counter[key]
+            self._composition = {key: counter[key] for key in sorted(counter)}
         return self._composition
 
     @property
     def length(self) -> int:
+        """
+        The length of sequence
+        """
         return len(self._seq)
 
     @property
     def seq(self) -> str:
         """
-        Sequence.seq is a read-only property, can only be modified by mutation
+        Read-only property, sequence can only be modified by ``mutation()``
         """
         return self._seq
 
     @property
     def weight(self) -> float:
-        """
-        Calculate the molecular Weight
+        """Calculate the sequence's Molar mass by below function
+
+        .. math::
+            weight_{seq} = \\sum_i^{length}weight_i - 18 * (length - 1)
 
         Returns:
-            weight: Sequence's Mole Weight in Daltons
+            weight(float): Molar mass with unit of Dalton
         """
         if not self._weight:
-            weight_table = config.MW[self.__class__.__name__ + "_MW"]
-            self._weight = round(sum([weight_table[e]
-                                 for e in self._seq], 18), 2)
+            weight_table = config.MW[self.__class__.__name__]
+            self._weight = sum([weight_table[e]for e in self._seq]) - 18 * (self.length - 1)
+
         return self._weight
 
     def align(self,
               subject: Union[str, "Sequence"],
               mode: int = 1) \
             -> Tuple[str, str, float]:
-        """
-        Align two sequence
+        """Align two sequence. Use ``bioseq.config.AlignmentConfig`` to set the alignment score,
+        including match(2), mismatch(-3), gap_open(-3), gap_extend(-3). number in brackets is default value
 
         Args:
-            subject: Sequence to align
-            mode: 1 - Use Needleman-Wunsch to global alignment
-                  2 - Use Smith-Waterman to partial alignment
+            subject(str|Sequence): Sequence to align
+            mode(int): 1: Use Needleman-Wunsch to global alignment\n
+                  2: Use Smith-Waterman to partial alignment
         Returns:
-            query: Self sequence after alignment
-            subject: Subject sequence after alignment
-            score: align score if choose return_score
+            tuple:
+            query(str): Self sequence after alignment\n
+            subject(str): Subject sequence after alignment\n
+            score（int): align score if choose return_score
         """
         if isinstance(subject, self.__class__):
             subject = subject._seq
@@ -101,11 +111,10 @@ class Sequence:
                 2-Local alignment by Smith-Waterman")
 
     def find(self, target: Union[str, "Sequence"]) -> List[int]:
-        """
-        Find the target sequence in sequence and return the position
+        """Find the target sequence in this sequence and return the positions
 
         Returns:
-            All position of target appearance in self.seq
+            List[int]: All position of target in this sequence
         """
         if isinstance(target, Sequence):
             target = target._seq
@@ -118,14 +127,13 @@ class Sequence:
     def mutation(self,
                  position: Union[str, int, List[int]],
                  target: Union[str, "Sequence"]) -> str:
-        """
-        Modify the sequence, reset the cached property.
+        """Change this sequence, ``self.seq`` can only be modified by this function
 
         Args:
-            position: char, index(s) to be mutation
-            target: the target char of mutation
+            position(Union[str, int, List[int]): char, index(s) to be mutation
+            target(Union[str, Sequence]): the target char of mutation
         Returns:
-            seq: Sequence after modified
+            str: Sequence after modified
         """
         if isinstance(target, Sequence):
             target = target._seq
@@ -167,25 +175,25 @@ class Sequence:
 
     def toDNA(self) -> "DNA":
         """
-        Convert Sequence type to DNA
+        Convert to a DNA instance
         """
         return DNA(self.seq, self.info)
 
     def toRNA(self) -> "RNA":
         """
-        Convert Sequence type to RNA
+        Convert to an RNA instance
         """
         return RNA(self.seq, self.info)
 
     def toPeptide(self) -> "Peptide":
         """
-        Convert Sequence type to Peptide
+        Convert to a Peptide instance
         """
         return Peptide(self.seq, self.info)
 
     def _print(self) -> str:
         """
-        Output sequence info
+        Sequence's output format, if length more than 30, only show the first and end 30 chars
         """
         if self._seq and len(self._seq) > 30:
             return f"{self._seq[:10]}...{self._seq[-10:]}"
@@ -263,12 +271,22 @@ class Peptide(Sequence):
     def chargeInpH(self, pH: float) -> float:
         """
         Calculate the charge amount of peptide at pH
-        Henderson Hasselbalch equation: pH = pKa + log([A-]/[HA])
-        Rearranging: [HA]/[A-] = 10 ** (pKa - pH)
-        partial_charge =
-            [A-]/[A]total = [A-]/([A-] + [HA]) = 1 / { ([A-] + [HA])/[A-] } =
-            1 / (1 + [HA]/[A-]) = 1 / (1 + 10 ** (pKa - pH)) for acidic residues;
-                                  1 / (1 + 10 ** (pH - pKa)) for basic residues
+
+        .. math::
+            pH = pK_a + \\lg{\\frac{[A^-]}{[HA]}}\\implies\\frac{[HA]}{[A^-]} = 10^{pK_a - pH}
+
+            charge = \\frac{[A^-]}{[A]_{total}} = \\frac{[A^-]}{[A^-] + [HA]}
+            = \\frac{1}{\\frac{[A^-] + [HA]}{[A^-]}}
+            = \\frac{1}{1 + \\frac{[HA]}{[A-]}}
+
+        for acidic residues:  :math:`charge = 1 / (1 + 10 ^{pK_a - pH})`
+
+        for basic residues:  :math:`charge = 1 / (1 + 10^{pH - pK_a})`
+
+        Args:
+            pH(float): pH value
+        Returns:
+            float: charge in specific pH
         """
         pos_charge = 1.0 / (10 ** (pH - config.PK["Nterm"]) + 1.0)
         for pos_aa, aa_pK in config.PK["pos_pK"].items():
@@ -286,15 +304,15 @@ class Peptide(Sequence):
                  window_size: int = 9,
                  show_img: bool = False) -> List[float]:
         """
-        Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity
+        Calculate the Hydropathy Score.The lager the score, the higher the hydrophobicity.
         Each aa's score is the average score of all aa in window_size.
         So part of Amino Acid at begin and end don't have score
 
         Args:
-            window_size: the number for calculate average hydropathy value
-            show_img: whether to draw the result
+            window_size(int): the number for calculate average hydropathy value
+            show_img(book): whether to draw the result, require ``matplotlib``
         Returns:
-            Hphob_list: the result of peptide's Hydropathy Score
+            List[float]: the result of peptide's Hydropathy Score
         """
         if not self._Hphob_list:
             _Hphob = [config.HYDROPATHY[aa] for aa in self._seq]
@@ -327,6 +345,9 @@ class Peptide(Sequence):
         return self._Hphob_list
 
     def _print(self) -> str:
+        """
+        Peptide print starts with "N-" and then ends with "-C", means sequence is from N-terminal to C-terminal
+        """
         if self._seq:
             return f"N-{super()._print()}-C"
         return self.__class__.__name__ + "()"
@@ -337,23 +358,17 @@ T = TypeVar("T", "RNA", "DNA")
 
 class RNA(Sequence):
     _GC: float
-    orf: List[str]
-    peptide: List[Peptide]
+    orf: List[str]         #: can only visit after called `get_orf()`
+    peptide: List[Peptide] #: can only visit after called `transcript()`
 
     def reset_cache(self):
         self._GC, self.orf, self.peptide = 0., [], []
         super().reset_cache()
 
-    def complement(self):
-        """
-        Change the sequence to complemented
-        """
-        self._seq = self.complemented._seq
-
     @property
-    def complemented(self: T) -> T:
+    def complement(self: T) -> T:
         """
-        Return complemented sequence
+        Return self complementary sequence
         """
         complement_dict = config.NC_INFO[self.__class__.__name__ + "_COMPLEMENT"]
         complement_seq = "".join([complement_dict[bp]
@@ -370,16 +385,10 @@ class RNA(Sequence):
                 (self.composition["C"] + self.composition["G"]) / self.length, 4)
         return self._GC
 
-    def reverse(self):
-        """
-        Change the sequence to reversed
-        """
-        self._seq = self.reversed._seq
-
     @property
     def reversed(self: T) -> T:
         """
-        Return reversed sequence
+        Return self reversed sequence
         """
         return self.__class__(self._seq[::-1])
 
@@ -387,13 +396,13 @@ class RNA(Sequence):
                topn: int = 1,
                replace: bool = False) -> List[str]:
         """
-        Find the Open Reading Frame in sequence and save in self.orf
+        Find the Open Reading Frame in sequence and save in ``self.orf``
 
         Args:
-            topn: the num of orfs, sorted by length of each orf, default is 1
-            replace: Replace origin sequence with the longest Orf
+            topn(int): the num of orfs, sorted by length of each orf, default is 1
+            replace(bool): Replace origin sequence with the longest Orf
         Returns:
-            Orf: Sequence's Orf got by search
+            List[str]: Orf found on self.
         """
         # Traverse all Orf Frame
         i, step = 0, 1
@@ -407,7 +416,7 @@ class RNA(Sequence):
 
             i += step
 
-            if config.TABLE.get(self._seq[i: i+3]) == "*":
+            if config.CODON_TABLE.get(self._seq[i: i+3]) == "*":
                 end_points.extend([(s, i + 3) for s in starts])
                 starts = []
                 step = 1
@@ -423,17 +432,17 @@ class RNA(Sequence):
 
     def transcript(self, topn: int = 1) -> List[Peptide]:
         """
-        Transcript the sequence to peptide, the result will save in self.peptide
+        Transcript the sequence to peptide, the result will save in ``self.peptide``
 
         Args:
-            topn:  the num of transcripts, sorted by length of each transcript, default is 1
+            topn(int):  filter num of transcripts, sorted by length of each transcript, default is 1
         Returns:
-            peptide: List of transcript product
+            List[Peptide]: List of transcript product
         """
         orf = self.orf if self.orf else self.getOrf(topn=topn)
         self.peptide = []
         for frame in orf:
-            peptide = "".join([config.TABLE.get(frame[i:i + 3],
+            peptide = "".join([config.CODON_TABLE.get(frame[i:i + 3],
                                                 config.SYMBOL["printAlign"][1])
                                for i in range(0, len(frame), 3)])
 
@@ -442,6 +451,9 @@ class RNA(Sequence):
         return self.peptide
 
     def _print(self):
+        """
+        Peptide print starts with " 5'- " and then ends with " -3' ", means sequence is from 5' to 3'
+        """
         if self._seq:
             return f"5'-{super()._print()}-3'"
         return self.__class__.__name__ + "()"
@@ -455,14 +467,32 @@ class DNA(RNA):
         super().reset_cache()
 
     def translate(self) -> RNA:
+        """
+        Translate the sequence to RNA, which replace the T with U
+        """
         if not self._translate:
             self._translate = RNA(self._seq.replace("T", "U"))
         return self._translate
 
     def getOrf(self, topn: int = 1, replace: bool = False) -> List[str]:
+        """Return the open reading frame of mRNA which is translated from this sequence.
+
+        Args:
+            topn(int): the num of orfs, sorted by length of each orf, default is 1
+            replace(bool): Replace origin sequence with the longest Orf
+        Returns:
+            List[str]: Orf found on mRNA
+        """
         self.orf = self.translate().getOrf(topn, replace)
         return self.orf
 
     def transcript(self, topn: int = 1) -> List[Peptide]:
+        """Return the transcript product of mRNA which is translated from this sequence.
+
+        Args:
+            topn(int):  filter num of transcripts, sorted by length of each transcript, default is 1
+        Returns:
+            List[Peptide]: List of transcript product
+        """
         self.peptide = self.translate().transcript(topn)
         return self.peptide

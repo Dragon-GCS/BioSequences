@@ -1,4 +1,3 @@
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Iterator, Iterable, List, Literal, Tuple, Union, overload
 from urllib.parse import urlencode
@@ -16,26 +15,27 @@ def fetchENS(uid: str) -> DNA:
 
 
 @overload
-def fetchENS(uid: Iterable[str]) -> List[DNA]:
+def fetchENS(uid: List[str]) -> List[DNA]:
     ...
 
 
 def fetchENS(uid):
-    """
-    Fetch sequence corresponding to UID from Ensemble REST api.
+    """Fetch sequence corresponding to UID from Ensemble REST api.
 
     Args:
-        uid: One or list of ENS's unique id
+        uid(str | List[str]): One or list of ENS's unique id
     Returns:
-        One of list of DNA
+        DNA | List[DNA]: One or list of DNA sequence corresponding to UID
     """
-    ENS_DATABASE_URL = "https://rest.ensembl.org/sequence/id/{}?content-type=text/plain"
+    ens_db_url = "https://rest.ensembl.org/sequence/id/{}?content-type=text/plain"
 
     def fetch(uid):
         raw_info = ""
-        for _ in range(3):
+        for i in range(3):
             try:
-                raw_info = urlopen(ENS_DATABASE_URL.format(uid)).read().decode()
+                print(
+                    f"[Try {i + 1}/3]Fetching {uid} from Ensemble REST API...")
+                raw_info = urlopen(ens_db_url.format(uid)).read().decode()
                 break
             except HTTPError as e:
                 if e.code == 400:
@@ -54,7 +54,7 @@ def fetchENS(uid):
         with ThreadPoolExecutor(5) as executor:
             return list(executor.map(fetch, uid))
     else:
-        raise ValueError(f"{uid} is not a str or list of str")
+        raise ValueError(f"{uid}'s type <{type(uid)}> is not a str or list of str")
 
 
 @overload
@@ -63,32 +63,39 @@ def fetchNCBI(uid: str) -> Union[DNA, RNA, Peptide]:
 
 
 @overload
-def fetchNCBI(uid: Iterable[str]) -> List[Sequence]:
+def fetchNCBI(uid: List[str]) -> List[Sequence]:
     ...
 
 
 def fetchNCBI(uid):
-    """
-    Fetch sequence corresponding to UID from NCBI E-utilities. Only support RNA, mRNA(DNA), Protein.
+    """Fetch sequence corresponding to UID from NCBI E-utilities. Only support RNA, mRNA(DNA), Protein.
 
-    NM_(mRNA):      Protein-coding transcripts (usually curated)
-    NR_(RNA ):      Non-protein-coding transcripts
-    XM_(mRNA):      Predicted model protein-coding transcript
-    XR_(RNA ):      Predicted model non-protein-coding transcript
-    AP_(Protein):   Annotated on AC_ alternate assembly
-    NP_(Protein):   Associated with an NM_ or NC_ accession
-    YP_(Protein):   Annotated on genomic molecules without an instantiated transcript record
-    XP_(Protein):   Predicted model, associated with an XM_ accession
-    WP_(Protein):   Non-redundant across multiple strains and species
+    =============   ==============================================================================
+    Prefix          Explanation
+    =============   ==============================================================================
+    NM_(mRNA)       Protein-coding transcripts (usually curated)
+    NR_(RNA )       Non-protein-coding transcripts
+    XM_(mRNA)       Predicted model protein-coding transcript
+    XR_(RNA )       Predicted model non-protein-coding transcript
+    AP_(Protein)    Annotated on AC alternate assembly
+    NP_(Protein)    Associated with an NM or NC accession
+    YP_(Protein)    Annotated on genomic molecules without an instantiated transcript record
+    XP_(Protein)    Predicted model, associated with an XM accession
+    WP_(Protein)    Non-redundant across multiple strains and species
+    =============   ==============================================================================
+
+    | NCBI RefSeq's document: https://www.ncbi.nlm.nih.gov/books/NBK21091/table/ch18.T.refseq_accession_numbers_and_mole
+    | some NCBI E-utilities's api: https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
 
     Args:
-        uid: One or list of NCBI's unique id
+        uid(str|List[str]): One or list of NCBI's unique id
     Returns:
+        DNA | RNA | Peptide | List[Sequence]:
         If uid is a list, the return is a list of Sequence(excluded the uid not found data on NCBI)
-        without ensure sequence's type,else the return is a Sequence corresponding to UID.
+        without ensure sequence's type, else the return is a Sequence corresponding to UID.
     """
-    EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
-    EUTILS_POST = {
+    eutils_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
+    eutils_post = {
         "db": "",               # database
         "rettype": "fasta",     # text type
         "retmode": "text",      # data type
@@ -114,44 +121,46 @@ def fetchNCBI(uid):
 
     def fetch(data: Dict) -> List[Sequence]:
         try:
+            print(f"Fetching {data['id']} from NCBI E-utilities...")
             raw_info = urlopen(
-                EUTILS_URL + urlencode(data)
+                eutils_url + urlencode(data)
             ).read().decode()
         except HTTPError as e:
             print(e)
-            return [Sequence()]
+            return [Sequence("")]
         else:
             return parseFasta(raw_info)
 
     if isinstance(uid, str):
-        EUTILS_POST["id"] = uid
-        EUTILS_POST["db"], seq_type = checkUID(uid)
-        sequence = fetch(EUTILS_POST)[0]
+        eutils_post["id"] = uid
+        eutils_post["db"], seq_type = checkUID(uid)
+        sequence = fetch(eutils_post)[0]
         return getattr(sequence, f"to{seq_type}")()
     elif isinstance(uid, Iterable):
-        uids = defaultdict(list)
+        uids = {}
         for id in uid:
             db, seq_type = checkUID(id)
-            uids[db].append((id, seq_type))
+            uids.setdefault(db, []).append((id, seq_type))
         result = []
         for db, seqs in uids.items():
-            EUTILS_POST["db"] = db
+            eutils_post["db"] = db
             for i in range(0, len(seqs), 200):
-                EUTILS_POST["id"] = ",".join([info[0] for info in seqs[i:i + 200]])
-                result.extend(fetch(EUTILS_POST))
+                eutils_post["id"] = ",".join(
+                    [info[0] for info in seqs[i:i + 200]])
+                result.extend(fetch(eutils_post))
         return result
     else:
-        raise ValueError(f"{uid} is not a str or list of str")
+        raise ValueError(f"{uid}'s type <{type(uid)}> is not a str or list of str")
 
 
 def parseFasta(fasta_text: str) -> List[Sequence]:
     """
-    Parse a string in FASTA format
+    Parse a FASTA formated string.
 
     Args:
-        fasta_text: string to be parsed
+        fasta_text(str): string to be parsed
     Returns:
-        A list[Sequence] of parsing result
+        List[Sequence]: Parsing result
     """
     return [Sequence("".join((text := fasta.split("\n"))[1:]), text[0])
             for fasta in fasta_text.split(">")
@@ -169,14 +178,13 @@ def loadFasta(filename: str, iterator: Literal[True]) -> Iterator[Sequence]:
 
 
 def loadFasta(filename, iterator=False):
-    """
-    Read fasta file
+    """Load fasta file
 
     Args:
         filename: the fasta file's name.
         iterator: Set to True as reading a large file, it will return a iterator.
     Returns:
-        A Iterator(when iterator=True) or a List of Sequence.
+        List[Sequence] | Iterator
     """
     def iter_parse(filename: str) -> Iterator[Sequence]:
         seq = ""
@@ -218,11 +226,11 @@ def printAlign(
     Print two sequence by a pretty format
 
     Args:
-        sequence1:  Sequence1
-        sequence2:  Sequence2
-        spacing:    A space each $spacing char
-        line_width: the width of each line
-        show_seq:   if False, only print the alignment result
+        sequence1(Iterator)
+        sequence2(Iterator)
+        spacing(int):    A space each $spacing char
+        line_width(int): the width of each line
+        show_seq(bool):   if False, only print the alignment result
     """
     symbol_line = ""
     format_seq1 = ""

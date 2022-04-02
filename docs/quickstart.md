@@ -1,16 +1,4 @@
-# BioSequences
-
-![PyPI - Downloads](https://img.shields.io/pypi/dw/Biosequences?logo=pypi&label=download) ![version](https://img.shields.io/pypi/v/biosequences?label=version&logo=pypi&color=lightgrey)
-![python version](https://img.shields.io/static/v1?label=python&message=>=3.8&color=orange&logo=python) ![PyPI - License](https://img.shields.io/pypi/l/biosequences?logo=gnuprivacyguard&color=green)
-![PyPI - Wheel](https://img.shields.io/pypi/wheel/biosequences) ![GitHub last commit](https://img.shields.io/github/last-commit/Dragon-GCS/Biosequences?color=yellowgreen) ![GitHub Repo stars](https://img.shields.io/github/stars/dragon-gcs/biosequences?color=blue)
-
----
-
-## 关于本项目
-
-**BioSequences**是一个集合了基本的常用的生物序列分析工具的包，旨在提高日常一些基本序列分析流程的工作效率，以及为大数据分析提供一些基础支持。
-
-完整文档请看这里[Document](https://biosequences.readthedocs.io/)。
+# 快速开始
 
 ## 安装
 
@@ -85,9 +73,9 @@ python -m pip install BioSequences
     >>> dna1 = DNA("ATCG")
     >>> dna2 = DNA("GCAT")
     >>> dna1 + dna2
-    "5'-ATCGGCAT-3'"
+    5'-ATCGGCAT-3'
     >>> dna2 + dna1
-    "5'-GCATATCG-3'"
+    5'-GCATATCG-3
     ```
 
 * 通过`mutation()`方法对序列进行修改
@@ -129,17 +117,3 @@ python -m pip install BioSequences
     >>> DNA("GCATGCT").align("GATTACA")
     ('GCATGCT', 'GATTACA', -6.0)
     ```
-
-## 贡献者
-
-<a href="https://github.com/Dragon-GCS">
-<img src="https://avatars.githubusercontent.com/u/54531807?v=4" alt="@Dragon-GCS" height="40" style="border-radius: 100%; border: 2px solid">
-</a>
-<a href="https://github.com/laxtiz">
-<img src="https://avatars.githubusercontent.com/u/3883767?v=4" alt="@laxtiz" height="40" style="border-radius: 100%; border: 2px solid">
-</a>
-
-## 致谢
-
-* [Read the Docs](https://readthedocs.org/)
-* [Img Shields](https://shields.io)

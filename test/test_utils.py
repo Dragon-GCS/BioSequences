@@ -12,9 +12,9 @@ class TestUtils(unittest.TestCase):
         copies = 2
         fasta_text = "\n".join([TEST_DNA] * copies)
 
-        datas = TEST_DNA.splitlines()
-        info = datas[0].lstrip(">")
-        sequence = "".join(datas[1:]).upper()
+        data = TEST_DNA.splitlines()
+        info = data[0].lstrip(">")
+        sequence = "".join(data[1:]).upper()
 
         seqs = utils.parseFasta(fasta_text)
         self.assertEqual(len(seqs), copies)
@@ -29,9 +29,9 @@ class TestUtils(unittest.TestCase):
             for _ in range(copies):
                 f.write(TEST_DNA)
 
-        datas = TEST_DNA.splitlines()
-        info = datas[0].lstrip(">")
-        sequence = "".join(datas[1:]).upper()
+        data = TEST_DNA.splitlines()
+        info = data[0].lstrip(">")
+        sequence = "".join(data[1:]).upper()
 
         seqs = utils.loadFasta("test.fasta")
         self.assertEqual(len(seqs), copies)
@@ -49,9 +49,9 @@ class TestUtils(unittest.TestCase):
             for _ in range(copies):
                 f.write(TEST_DNA)
 
-        datas = TEST_DNA.splitlines()
-        info = datas[0].lstrip(">")
-        sequence = "".join(datas[1:]).upper()
+        data = TEST_DNA.splitlines()
+        info = data[0].lstrip(">")
+        sequence = "".join(data[1:]).upper()
 
         seqs = list(utils.loadFasta("test.fasta", iterator=True))
         self.assertEqual(len(seqs), copies)
