@@ -4,7 +4,7 @@
 .venv/
 build/
 dist/
-docs/_*
+docs/_build/
 /*.egg-info/
 
 test.py
