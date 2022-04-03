@@ -53,7 +53,7 @@ python -m pip install BioSequences
     ```
 
 * DNA序列或RNA序列可以进行转录`transcript()`，DNA序列有`translate()`方法可以翻译为RNA序列。
-  还可以通过`bioseq.config.START_CODON`自定义起始密码子，以及通过修改`bioseq.config.CODON——TABLE`自定义密码子表。
+  还可以通过`bioseq.config.START_CODON`自定义起始密码子，以及通过修改`bioseq.config.CODON_TABLE`自定义密码子表。
 
     ```python
     >>> from bioseq.config import START_CODON, CODON_TABLE
