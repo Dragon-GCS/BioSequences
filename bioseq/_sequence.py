@@ -69,7 +69,8 @@ class Sequence:
         """
         if not self._weight:
             weight_table = config.MW[self.__class__.__name__]
-            self._weight = sum([weight_table[e]for e in self._seq]) - 18 * (self.length - 1)
+            self._weight = sum(
+                [weight_table[e] for e in self._seq]) - 18 * (self.length - 1)
 
         return self._weight
 
@@ -358,8 +359,8 @@ T = TypeVar("T", "RNA", "DNA")
 
 class RNA(Sequence):
     _GC: float
-    orf: List[str]         #: can only visit after called `get_orf()`
-    peptide: List[Peptide] #: can only visit after called `transcript()`
+    orf: List[str]          #: Can only visit after called `get_orf()`
+    peptide: List[Peptide]  #: Can only visit after called `transcript()`
 
     def reset_cache(self):
         self._GC, self.orf, self.peptide = 0., [], []
@@ -442,9 +443,11 @@ class RNA(Sequence):
         orf = self.orf if self.orf else self.getOrf(topn=topn)
         self.peptide = []
         for frame in orf:
-            peptide = "".join([config.CODON_TABLE.get(frame[i:i + 3],
-                                                config.SYMBOL["printAlign"][1])
-                               for i in range(0, len(frame), 3)])
+            peptide = "".join([
+                config.CODON_TABLE.get(
+                    frame[i:i + 3], config.SYMBOL["printAlign"][1])
+                for i in range(0, len(frame), 3)
+            ])
 
             self.peptide.append(Peptide(peptide[:-1]))
 

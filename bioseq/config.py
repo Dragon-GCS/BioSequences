@@ -28,11 +28,13 @@ CODON_TABLE: Dict[str, str] = {
     "UUA": "L", "UUC": "F", "UUG": "L", "UUU": "F"
 }
 #: :meta hide-value: | Start code list, default is ["AUG"], used to ``get_orf()``.
-#: | All codon in this list will be set to start of ORF. 
+#: | All codon in this list will be set to start of ORF.
 #: | When ``from bioseq.utils import START_CODON``, to change a start codon, don't assign to ``START_CODON``, use ``START_CODON[0] = "ATT"`` to instead.
 START_CODON: List[str] = ["AUG"]
 
 ################################ Align Parameter ################################
+
+
 class AlignmentConfig:
     """Align parameters
 
@@ -48,6 +50,7 @@ class AlignmentConfig:
     GAP_EXTEND: float = -3
 
 ############################### Molecular Weight ################################
+
 
 #: :meta hide-value: | Molecular weight table, include "Peptide", "DNA", "RNA".
 #: | reference https://www.thermofisher.cn/cn/zh/home/references/ambion-tech-support/rna-tools-and-calculators/dna-and-rna-molecular-weights-and-conversions.html
