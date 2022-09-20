@@ -51,14 +51,14 @@ mNode **initMatrix(int row_length, int column_length)
 
 float max2(float a, float b)
 { /*
-   *Description: return the maxium of two value
+   *Description: return the maximum of two value
    */
     return a > b ? a : b;
 }
 
 float max3(float a, float b, float c)
 { /*
-   *Description: return the maxium of three value
+   *Description: return the maximum of three value
    */
     float f = a > b ? a : b;
     return f > c ? f : c;
@@ -169,8 +169,8 @@ void NeedlemanWunsch(char *query, char *subject,
     // Assign init score to the 1st column's and 1st row's node
     score_matrix[0][0]->uScore = gap_open;
     score_matrix[0][0]->lScore = gap_open;
-    // Node's score = maxium of uScore, lScore and mScore
-    // Beacause gap open is minus and mScore is zero, the node's score shoud be zero
+    // Node's score = maximum of uScore, lScore and mScore
+    // Because gap open is minus and mScore is zero, the node's score should be zero
 
     for (i = 1; i <= rows; i++)
     {

@@ -155,7 +155,7 @@ def fetchNCBI(uid):
 
 def parseFasta(fasta_text: str) -> List[Sequence]:
     """
-    Parse a FASTA formated string.
+    Parse a FASTA formatted string.
 
     Args:
         fasta_text(str): string to be parsed

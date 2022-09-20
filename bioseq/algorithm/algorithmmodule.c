@@ -63,7 +63,7 @@ static PyMethodDef AlgorithmMethods[] = {
 static struct PyModuleDef algorithmmodule = {
     PyModuleDef_HEAD_INIT,
     "algorithm",
-    "algorithm module writed by c program language.",
+    "algorithm module wrote by c program language.",
     -1,
     AlgorithmMethods,
 };
